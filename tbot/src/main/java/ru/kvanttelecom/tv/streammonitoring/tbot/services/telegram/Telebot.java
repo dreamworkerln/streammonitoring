@@ -67,10 +67,12 @@ public class Telebot {
     private void postConstruct() {
         log.info("Staring telegram bot");
 
+        handlers.put("/streams", this::streams);
         handlers.put("/help", this::help);
         handlers.put("/echo", this::echo);
         handlers.put("/ping", this::ping);
-        handlers.put("/streams", this::streams);
+
+
 
         bot = new TelegramBot.Builder(props.getBotToken()).build();
 
@@ -185,11 +187,11 @@ public class Telebot {
     private void help(Long chatId, String text) {
 
         String message ="\n" +
-            "/streams - list of not working streams" +
+            "/streams - list of not working/flapping streams" +
             "/help - this help" +
             "\n" + "/echo [text] - echo [text]" +
-            "\n" + "/ping - echo-reply" +
-            "\n" + "Streams info: " + PROTOCOL + props.getAddress() + "/streams" + "\n";
+            "\n" + "/ping - echo-reply";
+            //"\n" + "Streams info: " + PROTOCOL + props.getAddress() + "/streams" + "\n";
 
         SendResponse response = sendMessage(chatId, message);
     }
@@ -217,10 +219,12 @@ public class Telebot {
         List<String> linesDown = new ArrayList<>();
         List<String> linesFlap = new ArrayList<>();
 
+
         for (Map.Entry<String, Stream> entry : streams.entrySet()) {
 
             Stream stream = entry.getValue();
 
+            // filter pass only offline or flapping cameras
             if(stream.isAlive() && !stream.isFlapping()) {
                 continue;
             }
@@ -228,14 +232,13 @@ public class Telebot {
             String title = stream.getTitle();
             boolean isFlapping = stream.isFlapping();
 
-            String string = "";
-
             if(isBlank(title)) {
                 title = stream.getName();
             }
 
             if(isFlapping) {
-                linesFlap.add(title + " [FLAPPING]" + "\n");
+                //linesFlap.add(title + " [FLAPPING]" + "\n");
+                linesFlap.add(title + "\n");
             }
             else {
                 linesDown.add(title + "\n");
@@ -247,12 +250,12 @@ public class Telebot {
 
 
         if(linesDown.size() > 0) {
-            sb.append("DOWN STREAMS:\n\n");
+            sb.append("DOWN STREAMS:\n");
             linesDown.forEach(sb::append);
         }
 
         if(linesFlap.size() > 0) {
-            sb.append("FLAPPING STREAMS:\n\n");
+            sb.append("\nFLAPPING STREAMS:\n");
             linesFlap.forEach(sb::append);
         }
 

@@ -1,4 +1,4 @@
-# videomonitoring
+# streammonitoring
 Flussonic media server streams monitoring and notification via telegram bot
 
 Running from IDE:

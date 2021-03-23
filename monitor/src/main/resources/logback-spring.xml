@@ -35,7 +35,7 @@
     <!--  Время в stdout в локальном часовом поясе -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %highlightex(%-5level) [%thread] %cyan(%logger{10}:%L) - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %highlightex(%-5level) [%.20thread] %cyan(%logger{10}:%L) - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -123,7 +123,7 @@
     <logger name="okhttp3" level="WARN"/>
 
     <!-- PROJECT LEVEL -->
-    <logger name="ru.kvanttelecom.tv.videomonitor" level="TRACE"/>
+    <logger name="ru.kvanttelecom.tv.streammonitoring" level="TRACE"/>
 
     <!-- ROOT LEVEL, default log level for packages that not specified above -->
     <root level="INFO">
