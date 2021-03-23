@@ -12,32 +12,32 @@ import ru.kvanttelecom.tv.streammonitoring.utils.data.Stream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ru.kvanttelecom.tv.streammonitoring.utils.configurations.amqp.AMQPConfiguration.CAMERA_RPC_GET_ALL_CAMERAS_MAGIC_CONSTANT;
+import static ru.kvanttelecom.tv.streammonitoring.utils.configurations.amqp.AMQPConfiguration.STREAM_RPC_GET_ALL_STREAMS_MAGIC_CONSTANT;
 
 @Service
 @Slf4j
-public class CameraRpcClient {
+public class StreamRpcClient {
 
     @Autowired
     private RabbitTemplate template;
 
     @Autowired
-    private DirectExchange cameraRpcExchange;
+    private DirectExchange exchangeStreamRpc;
 
     @Autowired
-    private Binding bindingCameraRpc;
+    private Binding bindingStreamRpc;
 
     public List<Stream> findAll() {
 
         List<Stream> result;
-        log.trace("RPC REQUEST <FIND CAMERAS ALL>");
+        log.trace("RPC REQUEST <FIND STREAMS ALL>");
 
-        List<String> names = List.of(CAMERA_RPC_GET_ALL_CAMERAS_MAGIC_CONSTANT);
+        List<String> names = List.of(STREAM_RPC_GET_ALL_STREAMS_MAGIC_CONSTANT);
 
         result = findRpc(names);
 
         if(result == null) {
-            throw new RuntimeException("RPC <FIND CAMERAS ALL>: NO RESPONSE");
+            throw new RuntimeException("RPC <FIND STREAMS ALL>: NO RESPONSE");
         }
         return result;
     }
@@ -52,12 +52,12 @@ public class CameraRpcClient {
             return new ArrayList<>();
         }
 
-        log.trace("RPC REQUEST <FIND CAMERAS BY NAME>: {}", names);
+        log.trace("RPC REQUEST <FIND STREAMS BY NAME>: {}", names);
 
         result = findRpc(names);
 
         if(result == null) {
-            throw new RuntimeException("RPC <FIND CAMERAS BY NAME>: NO RESPONSE");
+            throw new RuntimeException("RPC <FIND STREAMS BY NAME>: NO RESPONSE");
         }
 
         return result;
@@ -68,8 +68,8 @@ public class CameraRpcClient {
 
     private List<Stream> findRpc(List<String> names) {
         List<Stream> result;
-        String exchanger = cameraRpcExchange.getName();
-        String routing = bindingCameraRpc.getRoutingKey();
+        String exchanger = exchangeStreamRpc.getName();
+        String routing = bindingStreamRpc.getRoutingKey();
 
         ParameterizedTypeReference<ArrayList<Stream>> typeRef = new ParameterizedTypeReference<>() {};
         result = template.convertSendAndReceiveAsType(exchanger, routing, names, typeRef);

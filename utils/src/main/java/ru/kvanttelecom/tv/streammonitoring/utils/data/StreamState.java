@@ -10,16 +10,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Internal camera status info
+ * Internal stream status info
  */
 @Slf4j
-public class CameraState {
+public class StreamState {
 
     // Порог минимального числа изменений update.alive
-    // Для начала вычисления частоты изменения update.alive камеры
+    // Для начала вычисления частоты изменения update.alive стрима
     public static final int UPDATE_ALIVE_CHANGE_COUNT_MIN = 10;
 
-    // how many times CameraUpdate.alive was changed since last calculation
+    // how many times StreamUpdate.alive was changed since last calculation
     private final AtomicInteger updateAliveChangeCount = new AtomicInteger();
 
     // время последнего вычисления LevelChangeRps
@@ -29,19 +29,19 @@ public class CameraState {
     @Setter
     private int level = 0;
 
-    // Значение CameraUpdate.alive при последнем обновлении состояния камеры
+    // Значение StreamUpdate.alive при последнем обновлении состояния стрима
     @Getter
     @Setter
     private boolean lastUpdateAlive;
 
     /**
-     * Вычисляет для камеры количество изменение CameraUpdate.alive в секунду
+     * Вычисляет для стрима количество изменений StreamUpdate.alive в секунду
      * <br>Для начала вычисления, необходимо,
-     * чтобы CameraUpdate.alive изменилось не менее, чем UPDATE_ALIVE_CHANGE_COUNT_MIN раз.
-     * @param update CameraUpdate
+     * чтобы StreamUpdate.alive изменилось не менее, чем UPDATE_ALIVE_CHANGE_COUNT_MIN раз.
+     * @param update StreamUpdate
      * @return null, если вычисление не производилось, double - результат
      */
-    public Double calculateUpdateAliveFreq(CameraUpdate update) {
+    public Double calculateUpdateAliveFreq(StreamUpdate update) {
 
         Double result = null;
 
@@ -49,7 +49,7 @@ public class CameraState {
         if(lastUpdateAlive != update.isAlive()) {
 
 
-            log.trace("Camera {} flap count: {}", update.getName(), updateAliveChangeCount.get());
+            log.trace("Stream {} flap count: {}", update.getName(), updateAliveChangeCount.get());
 
             // увеличиваем aliveChangeCount
             // Производим расчет частоты изменения updateAlive,

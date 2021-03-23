@@ -13,7 +13,7 @@ public class BotScheduler {
     StreamSynchronizer synchronizer;
 
     /**
-     * Синхронизирует локальный список камер с monitor (целиком)
+     * Синхронизирует локальный список стримов с monitor (целиком)
      */
     @Scheduled(fixedDelayString = "#{botProperties.getRefreshIntervalSec() * 1000}", initialDelay = 10 * 1000)
     public void syncAllStreams() {

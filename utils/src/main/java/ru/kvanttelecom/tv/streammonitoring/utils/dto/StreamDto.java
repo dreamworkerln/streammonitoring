@@ -3,26 +3,26 @@ package ru.kvanttelecom.tv.streammonitoring.utils.dto;
 import lombok.Data;
 
 @Data
-public class CameraDto {
+public class StreamDto {
 
         /**
-         * Camera name
+         * Stream name
          */
         private String name;
 
         /**
-         * Camera title
+         * Stream title
          */
         private String title;
 
         /**
-         * Is camera alive
+         * Is stream alive
          */
         private boolean alive;
 
-        public CameraDto() {}
+        public StreamDto() {}
 
-        public CameraDto(String name, String title, boolean alive) {
+        public StreamDto(String name, String title, boolean alive) {
                 this.name = name;
                 this.title = title;
                 this.alive = alive;

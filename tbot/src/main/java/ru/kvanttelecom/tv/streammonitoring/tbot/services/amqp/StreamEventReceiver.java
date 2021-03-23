@@ -11,16 +11,16 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class CameraEventReceiver {
+public class StreamEventReceiver {
 
     @Autowired
     StreamSynchronizer synchronizer;
 
-    @RabbitListener(queues = "#{cameraUpdateQueue.getName()}")
+    @RabbitListener(queues = "#{queueStreamEvent.getName()}")
     private void receive(List<StreamEvent> events) {
 
         try {
-            log.trace("CAMERA EVENT: {}", events);
+            log.trace("STREAM EVENT: {}", events);
             synchronizer.syncFromEvent(events);
 
         }

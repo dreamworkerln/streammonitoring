@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.CameraUpdate;
+import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamUpdate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,27 +39,27 @@ public class MediaServerApiClient {
     MonitorProperties props;
 
     /**
-     * Get json info about all cameras from flussonic media server
+     * Get json info about all streams from flussonic media server
      * @param url flussonic media server url
      * @return body
      */
 
     /**
-     * Get info about all cameras from selected flussonic media server
+     * Get info about all streams from selected flussonic media server
      * @param server server
      */
-    public List<CameraUpdate> getCamerasUpdate(String server) {
+    public List<StreamUpdate> getStreamsUpdate(String server) {
 
 
-        List<CameraUpdate> result = new ArrayList<>();
+        List<StreamUpdate> result = new ArrayList<>();
 
         String url = PROTOCOL + server + "/flussonic/api/media";
 
-        String cameraName = "<null>";
+        String streamName = "<null>";
         String body = null;
         try {
 
-            //log.trace("DOWNLOADING CAMERA LIST: {}", url);
+            //log.trace("DOWNLOADING STREAM LIST: {}", url);
             ResponseEntity<String> response = restClient.get(url);
             body = response.getBody();
 
@@ -74,7 +74,7 @@ public class MediaServerApiClient {
             for (int i = 0; i < list.length(); i++) {
 
                 JSONObject camJson = list.getJSONObject(i).getJSONObject("value");
-                cameraName = camJson.getString("name");
+                streamName = camJson.getString("name");
                 //log.trace("NAME: {}", name);
 
                 JSONObject stats = camJson.getJSONObject("stats");
@@ -91,15 +91,15 @@ public class MediaServerApiClient {
 
                 //boolean enabled = !options.optBoolean("disabled", false);
 
-                CameraUpdate cameraUpdate = new CameraUpdate(cameraName,server, title, alive);
+                StreamUpdate streamUpdate = new StreamUpdate(streamName,server, title, alive);
 
-                result.add(cameraUpdate);
+                result.add(streamUpdate);
             }
         }
         // try-catch used only to write error message to log, rethrowing
         catch(JSONException rethrow) {
             String message =
-                formatMsg("PARSING CAMERA PROBLEM: {} ", cameraName) +
+                formatMsg("PARSING STREAM PROBLEM: {} ", streamName) +
                 formatMsg("JSON PARSE ERROR: {} ", rethrow.getMessage()) +
                 formatMsg("PROBLEM JSON:\n{}", body);
             log.error(message);
@@ -108,16 +108,4 @@ public class MediaServerApiClient {
         return result;
     }
 
-
-
-
-//    /**
-//     * Send data to master service
-//     */
-//    @SneakyThrows
-//    public void sendEventsToBot(ConcurrentMap<String, CameraEvent> events) {
-//        String url = PROTOCOL + props.getBotUrl() + ControllersPaths.tbot.camera.update;
-//        //String json = converter.camEventToJson(events);
-//        //restClient.post(url, json).getBody();
-//    }
 }

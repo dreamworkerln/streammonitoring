@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 public class AMQPConfiguration {
 
-    public static final String CAMERA_RPC_GET_ALL_CAMERAS_MAGIC_CONSTANT = "CAMERA_RPC_GET_ALL_CAMERAS_MAGIC_CONSTANT";
+    public static final String STREAM_RPC_GET_ALL_STREAMS_MAGIC_CONSTANT = "STREAM_RPC_GET_ALL_MAGIC_CONSTANT_BFG_V_1";
 
     @Bean
     public MessageConverter jsonMessageConverter(ObjectMapper objectMapper) {
@@ -21,68 +21,47 @@ public class AMQPConfiguration {
         return new Jackson2JsonMessageConverter(objectMapper);
     }
 
-    // Camera Update Events ---------------------------------------------------------
+    // Stream Update Events ---------------------------------------------------------
 
     @Bean
-    public Queue cameraUpdateQueue() {
-        return new Queue("camera.update");
+    public Queue queueStreamEvent() {
+        return new Queue("queue.stream.event");
     }
 
     @Bean
-    public DirectExchange cameraUpdateExchange() {
-        return new DirectExchange("exchange.camera.update");
+    public DirectExchange exchangeStreamUpdate() {
+        return new DirectExchange("exchange.stream.event");
     }
 
     @Bean
-    public Binding bindingCameraUpdate(DirectExchange cameraUpdateExchange, Queue cameraUpdateQueue) {
-        return BindingBuilder.bind(cameraUpdateQueue)
-            .to(cameraUpdateExchange)
-            .with("routing.camera.update");
+    public Binding bindingStreamUpdate(DirectExchange exchangeStreamUpdate, Queue queueStreamEvent) {
+        return BindingBuilder.bind(queueStreamEvent)
+            .to(exchangeStreamUpdate)
+            .with("routing.stream.event");
     }
 
 
-    // Camera RPC ---------------------------------------------------------
+    // Stream RPC ---------------------------------------------------------
 
 
     @Bean
-    public Queue cameraRpcQueue() {
-        return new Queue("camera.rpc");
+    public Queue queueStreamRpc() {
+        return new Queue("queue.stream.rpc");
     }
 
 
     @Bean
-    public DirectExchange cameraRpcExchange() {
-        return new DirectExchange("exchange.camera.rpc");
+    public DirectExchange exchangeStreamRpc() {
+        return new DirectExchange("exchange.stream.rpc");
     }
 
     @Bean
-    public Binding bindingCameraRpc(DirectExchange cameraRpcExchange,
-                           Queue cameraRpcQueue) {
-        return BindingBuilder.bind(cameraRpcQueue)
-            .to(cameraRpcExchange)
-            .with("routing.camera.rpc");
+    public Binding bindingStreamRpc(DirectExchange exchangeStreamRpc,
+                                    Queue queueStreamRpc) {
+        return BindingBuilder.bind(queueStreamRpc)
+            .to(exchangeStreamRpc)
+            .with("routing.stream.rpc");
     }
 
     // ---------------------------------------------------------
-
-/*
-    @Bean
-    public Queue testRpcQueue() {
-        return new Queue("test.rpc");
-    }
-
-
-    @Bean
-    public DirectExchange testRpcExchange() {
-        return new DirectExchange("exchange.test.rpc");
-    }
-
-    @Bean
-    public Binding bindingTestRpc(DirectExchange cameraRpcExchange,
-                                    Queue cameraRpcQueue) {
-        return BindingBuilder.bind(cameraRpcQueue)
-            .to(cameraRpcExchange)
-            .with("routing.test.rpc");
-    }
-    */
 }

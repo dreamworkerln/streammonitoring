@@ -12,7 +12,7 @@ import javax.annotation.PostConstruct;
 import java.time.Duration;
 
 @Component
-public class DeletedCameras {
+public class DeletedStreams {
 
     private static final Duration TTL = Duration.ofMinutes(1);
 

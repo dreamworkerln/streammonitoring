@@ -12,8 +12,9 @@ import org.springframework.stereotype.Service;
 import ru.dreamworkerln.spring.utils.common.threadpool.BlockingJobPool;
 import ru.dreamworkerln.spring.utils.common.threadpool.JobResult;
 import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.BotProperties;
-import ru.kvanttelecom.tv.streammonitoring.tbot.entities.StreamMap;
 import ru.kvanttelecom.tv.streammonitoring.utils.data.Stream;
+import ru.kvanttelecom.tv.streammonitoring.utils.entities.StreamMap;
+
 import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -60,7 +61,7 @@ public class Telebot {
     BotProperties props;
 
     @Autowired
-    private StreamMap cameras;
+    private StreamMap streams;
 
     @PostConstruct
     private void postConstruct() {
@@ -69,7 +70,7 @@ public class Telebot {
         handlers.put("/help", this::help);
         handlers.put("/echo", this::echo);
         handlers.put("/ping", this::ping);
-        handlers.put("/cameras", this::cameras);
+        handlers.put("/streams", this::streams);
 
         bot = new TelegramBot.Builder(props.getBotToken()).build();
 
@@ -184,11 +185,11 @@ public class Telebot {
     private void help(Long chatId, String text) {
 
         String message ="\n" +
-            "/cameras - list of not working cameras" +
+            "/streams - list of not working streams" +
             "/help - this help" +
             "\n" + "/echo [text] - echo [text]" +
             "\n" + "/ping - echo-reply" +
-            "\n" + "Cameras info: " + PROTOCOL + props.getAddress() + "/cameras" + "\n";
+            "\n" + "Streams info: " + PROTOCOL + props.getAddress() + "/streams" + "\n";
 
         SendResponse response = sendMessage(chatId, message);
     }
@@ -204,15 +205,19 @@ public class Telebot {
 
 
     /**
-     * Show DOWN cameras
+     * Show DOWN streams
      */
-    private void cameras(Long chatId, String text) {
+    private void streams(Long chatId, String text) {
 
 
-        StringBuilder sb = new StringBuilder("DOWN CAMERAS:\n\n");
-        List<String> lines = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
 
-        for (Map.Entry<String, Stream> entry : cameras.entrySet()) {
+
+
+        List<String> linesDown = new ArrayList<>();
+        List<String> linesFlap = new ArrayList<>();
+
+        for (Map.Entry<String, Stream> entry : streams.entrySet()) {
 
             Stream stream = entry.getValue();
 
@@ -223,29 +228,35 @@ public class Telebot {
             String title = stream.getTitle();
             boolean isFlapping = stream.isFlapping();
 
-            StringBuilder string = new StringBuilder();
+            String string = "";
 
             if(isBlank(title)) {
                 title = stream.getName();
             }
-            string.append(title);
 
             if(isFlapping) {
-                string.append(" [FLAPPING]");
+                linesFlap.add(title + " [FLAPPING]" + "\n");
             }
-            string.append("\n");
-
-            lines.add(string.toString());
+            else {
+                linesDown.add(title + "\n");
+            }
         }
 
+        linesDown.sort(Comparator.comparing(Function.identity(), String.CASE_INSENSITIVE_ORDER));
+        linesFlap.sort(Comparator.comparing(Function.identity(), String.CASE_INSENSITIVE_ORDER));
 
-        lines.sort(Comparator.comparing(Function.identity(), String.CASE_INSENSITIVE_ORDER));
 
+        if(linesDown.size() > 0) {
+            sb.append("DOWN STREAMS:\n\n");
+            linesDown.forEach(sb::append);
+        }
 
-        lines.forEach(sb::append);
+        if(linesFlap.size() > 0) {
+            sb.append("FLAPPING STREAMS:\n\n");
+            linesFlap.forEach(sb::append);
+        }
 
-        if(lines.size() == 0) {
-            sb.setLength(0);
+        if(linesDown.size() == 0 && linesFlap.size() == 0) {
             sb.append("ALL ONLINE");
         }
 

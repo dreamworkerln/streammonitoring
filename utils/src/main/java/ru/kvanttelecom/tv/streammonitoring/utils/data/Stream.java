@@ -8,7 +8,7 @@ import ru.dreamworkerln.spring.utils.common.annotations.Default;
 import java.util.Objects;
 
 /**
- * Camera status
+ * Stream status
  */
 public class Stream {
 
@@ -18,21 +18,21 @@ public class Stream {
     @Getter
     protected String title;
 
-    // Is camera online/offline
+    // Is stream online/offline
     @Getter
     @Setter
     protected boolean alive;
 
-    // Is camera flapping
+    // Is stream flapping
     @Getter
     @Setter
     protected boolean flapping;
 
-    // Internal camera state
+    // Internal stream state
     @Getter
     @Setter
     @JsonIgnore
-    protected CameraState state = new CameraState();
+    protected StreamState state = new StreamState();
 
     public Stream() {}
 
@@ -46,7 +46,7 @@ public class Stream {
 
     @Override
     public String toString() {
-        return "Camera{" +
+        return "Stream{" +
             "name='" + name + '\'' +
             ", title='" + title + '\'' +
             ", alive=" + alive +

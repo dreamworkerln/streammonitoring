@@ -3,15 +3,15 @@ package ru.kvanttelecom.tv.streammonitoring.utils.dto.constants;
 public class ControllersPaths {
 
     public static class monitor {
-        public static class camera {
-            public static final String all = "/camera/all";
-            public static final String idList = "/camera/findById";
+        public static class stream {
+            public static final String all = "/stream/all";
+            public static final String idList = "/stream/findById";
         }
     }
 
     public static class tbot {
-        public static class camera {
-            public static final String update = "/camera/update";
+        public static class stream {
+            public static final String update = "/stream/update";
         }
     }
 }

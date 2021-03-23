@@ -1,6 +1,6 @@
 package ru.kvanttelecom.tv.streammonitoring.utils.dto.enums;
 
-public enum CameraEventType {
+public enum StreamEventType {
     INIT,
     //NONE,
     ONLINE,

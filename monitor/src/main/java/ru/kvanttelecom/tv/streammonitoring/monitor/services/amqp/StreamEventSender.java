@@ -12,26 +12,26 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class CameraEventSender {
+public class StreamEventSender {
 
     @Autowired
     private RabbitTemplate template;
 
     @Autowired
-    private DirectExchange cameraUpdateExchange;
+    private DirectExchange exchangeStreamUpdate;
 
     @Autowired
-    private Binding bindingCameraUpdate;
+    private Binding bindingStreamUpdate;
 
 
     public void send(List<StreamEvent> events) {
 
-        String exchanger = cameraUpdateExchange.getName();
-        String routing = bindingCameraUpdate.getRoutingKey();
+        String exchanger = exchangeStreamUpdate.getName();
+        String routing = bindingStreamUpdate.getRoutingKey();
 
-        log.trace("SENDING CAMERA EVENTS: {}", events);
+        log.trace("SENDING STREAM EVENTS: {}", events);
         template.convertAndSend(exchanger, routing, events);
-        //log.trace("CAMERA EVENTS SEND");
+        //log.trace("STREAM EVENTS SEND");
     }
 
 }

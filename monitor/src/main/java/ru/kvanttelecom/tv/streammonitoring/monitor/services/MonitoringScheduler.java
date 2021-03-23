@@ -6,10 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.CameraEventSender;
-import ru.kvanttelecom.tv.streammonitoring.monitor.entities.CameraMap;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.StreamEventSender;
+import ru.kvanttelecom.tv.streammonitoring.utils.entities.StreamMap;
 import ru.kvanttelecom.tv.streammonitoring.monitor.entities.ServerMap;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.CameraUpdate;
+import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamUpdate;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEvent;
 
 import java.util.*;
@@ -29,10 +29,10 @@ public class MonitoringScheduler {
     private ServerMap servers;
 
     @Autowired
-    CameraService cameraService;
+    StreamService streamService;
 
     @Autowired
-    CameraEventSender cameraEventSender;
+    StreamEventSender streamEventSender;
 
 
 
@@ -40,7 +40,7 @@ public class MonitoringScheduler {
     MonitorProperties props;
 
     /**
-     * Monitoring camera updates on flussonic media servers
+     * Monitoring stream updates on flussonic media servers
      */
     //
     @Scheduled(fixedDelayString = "#{monitorProperties.getRefreshIntervalSec() * 1000}",
@@ -52,11 +52,11 @@ public class MonitoringScheduler {
             // Events from all servers
             List<StreamEvent> events = new ArrayList<>();
 
-            // CameraUpdate name index - checking camera uniqueness (on all servers)
-            Map<String,CameraUpdate> nameIndex = new HashMap<>();
+            // StreamUpdate name index - checking stream uniqueness (on all servers)
+            Map<String, StreamUpdate> nameIndex = new HashMap<>();
 
             // обходим по всем серверам
-            for (Map.Entry<String, CameraMap> server : servers.entrySet()) {
+            for (Map.Entry<String, StreamMap> server : servers.entrySet()) {
 
                 String serverName = null;
                 try {
@@ -65,7 +65,7 @@ public class MonitoringScheduler {
                     //log.trace("Scanning server: {}", serverName);
 
                     // get updates from specified flussonic media server
-                    List<CameraUpdate> update = apiClient.getCamerasUpdate(serverName);
+                    List<StreamUpdate> update = apiClient.getStreamsUpdate(serverName);
 
 
                     checkDuplicate(update, nameIndex);
@@ -75,13 +75,13 @@ public class MonitoringScheduler {
                         checkDuplicate(update, nameIndex);
                     }
                     catch (Exception skip) {
-                        log.error("Found duplicate cameras on server: {}", serverName, skip);
+                        log.error("Found duplicate streams on server: {}", serverName, skip);
                     }
 */
 
 
                     // calculate update events for selected server
-                    List<StreamEvent> serverEvents = cameraService.applyUpdate(serverName, update);
+                    List<StreamEvent> serverEvents = streamService.applyUpdate(serverName, update);
 
                     events.addAll(serverEvents);
                 }
@@ -95,7 +95,7 @@ public class MonitoringScheduler {
             if (events.size() > 0) {
                 // sending events to message aggregator(bot)
                 try {
-                    cameraEventSender.send(events);
+                    streamEventSender.send(events);
                 }
                 // skip on error
                 catch (Exception skip) {
@@ -115,20 +115,20 @@ public class MonitoringScheduler {
 
 
     /**
-     * Check duplicate cameras (by name) on different flussonic media servers
-     * <b>If duplicate camera found on server then all cameras update from this server will be rejected
+     * Check duplicate streams (by name) on different flussonic media servers
+     * <b>If duplicate stream found on server then all streams update from this server will be rejected
      * @param update update from specific server
-     * @param nameIndex cameras name index of all cameras on all servers
+     * @param nameIndex streams name index of all streams on all servers
      */
-    private void checkDuplicate(List<CameraUpdate> update, Map<String, CameraUpdate> nameIndex) {
+    private void checkDuplicate(List<StreamUpdate> update, Map<String, StreamUpdate> nameIndex) {
         // check for duplicates
 
-        List<CameraUpdateDuplicate> duplicates = new ArrayList<>();
+        List<StreamUpdateDuplicate> duplicates = new ArrayList<>();
 
         update.forEach(u -> {
-            CameraUpdate exists = nameIndex.get(u.getName());
+            StreamUpdate exists = nameIndex.get(u.getName());
             if(nameIndex.containsKey(u.getName())) {
-                duplicates.add(new CameraUpdateDuplicate(exists, u));
+                duplicates.add(new StreamUpdateDuplicate(exists, u));
             }
             else {
                 nameIndex.put(u.getName(), u);
@@ -136,16 +136,16 @@ public class MonitoringScheduler {
         });
 
         if(duplicates.size() > 0) {
-            StringBuilder sb = new StringBuilder("Found duplicate cameras:\n");
+            StringBuilder sb = new StringBuilder("Found duplicate streams:\n");
 
             String prefix = "";
-            for (CameraUpdateDuplicate d : duplicates) {
+            for (StreamUpdateDuplicate d : duplicates) {
                 sb.append(prefix);
                 prefix = "\n";
                 sb.append(d);
 
 /*                // FixMe  - удалить строку, поиск сканированием всех строк
-                // Добавил, чтобы удалялись дубликаты камер, иначе весь update будет отброшен
+                // Добавил, чтобы удалялись дубликаты стримов, иначе весь update будет отброшен
                 update.removeIf(u->u.getName().equals(d.exists.getName()));
 */
             }
@@ -155,14 +155,14 @@ public class MonitoringScheduler {
 
 
 
-    private static class CameraUpdateDuplicate {
+    private static class StreamUpdateDuplicate {
 
         @Getter
-        private final CameraUpdate exists;
-        private final CameraUpdate update;
+        private final StreamUpdate exists;
+        private final StreamUpdate update;
 
 
-        private CameraUpdateDuplicate(CameraUpdate exists, CameraUpdate update) {
+        private StreamUpdateDuplicate(StreamUpdate exists, StreamUpdate update) {
             this.exists = exists;
             this.update = update;
         }

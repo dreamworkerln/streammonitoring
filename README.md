@@ -1,5 +1,5 @@
 # videomonitoring
-Flussonic media server cameras(streams) monitoring and notification via telegram bot
+Flussonic media server streams monitoring and notification via telegram bot
 
 Running from IDE:
 Set Working directory in Run Configurations to:

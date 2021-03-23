@@ -4,10 +4,10 @@ import lombok.Getter;
 
 
 /**
- * Camera status update
- * (data, grabbed from flussonic media server, contained current camera status)
+ * Stream status update
+ * (data, grabbed from flussonic media server, contained current stream status)
  */
-public class CameraUpdate {
+public class StreamUpdate {
 
     @Getter
     private final String name;
@@ -22,7 +22,7 @@ public class CameraUpdate {
     private final boolean alive;
 
 
-    public CameraUpdate(String name, String serverName, String title, boolean alive) {
+    public StreamUpdate(String name, String serverName, String title, boolean alive) {
         this.name = name;
         this.serverName = serverName;
         this.title = title;
@@ -31,7 +31,7 @@ public class CameraUpdate {
 
     @Override
     public String toString() {
-        return "CameraInfo{" +
+        return "StreamUpdate{" +
             "name='" + name + '\'' +
             ", title='" + title + '\'' +
             ", server=" + serverName +
