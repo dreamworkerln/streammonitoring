@@ -12,6 +12,7 @@ import ru.kvanttelecom.tv.streammonitoring.monitor.entities.ServerMap;
 import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamUpdate;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEvent;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
 
@@ -22,22 +23,30 @@ import java.util.*;
 @Slf4j
 public class MonitoringScheduler {
 
+    private boolean checkStreamUniq;
+
     @Autowired
-    private MediaServerApiClient apiClient;
+    private StreamGrabber apiClient;
 
     @Autowired
     private ServerMap servers;
 
     @Autowired
-    StreamService streamService;
+    private StreamService streamService;
 
     @Autowired
-    StreamEventSender streamEventSender;
-
-
+    private StreamEventSender streamEventSender;
 
     @Autowired
-    MonitorProperties props;
+    private MonitorProperties props;
+
+
+    @PostConstruct
+    private void postConstruct() {
+        checkStreamUniq = props.isCheckStreamUniq();
+    }
+
+
 
     /**
      * Monitoring stream updates on flussonic media servers
@@ -122,6 +131,10 @@ public class MonitoringScheduler {
      */
     private void checkDuplicate(List<StreamUpdate> update, Map<String, StreamUpdate> nameIndex) {
         // check for duplicates
+
+        if(!checkStreamUniq) {
+            return;
+        }
 
         List<StreamUpdateDuplicate> duplicates = new ArrayList<>();
 

@@ -22,7 +22,7 @@ public class StreamUpdate {
     private final boolean alive;
 
 
-    public StreamUpdate(String name, String serverName, String title, boolean alive) {
+    public StreamUpdate(String serverName, String name,  String title, boolean alive) {
         this.name = name;
         this.serverName = serverName;
         this.title = title;

@@ -24,6 +24,11 @@ public class MonitorProperties {
     @Getter
     private int refreshIntervalSec;
 
+
+    @Value("${check.stream.uniqueness}")
+    @Getter
+    private boolean checkStreamUniq;
+
     @Getter
     @Autowired
     VideoServers servers;

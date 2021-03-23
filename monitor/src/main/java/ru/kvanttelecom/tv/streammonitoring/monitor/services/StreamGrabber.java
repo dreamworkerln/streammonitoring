@@ -24,7 +24,7 @@ import static ru.kvanttelecom.tv.streammonitoring.utils.dto.constants.Constants.
  */
 @Service
 @Slf4j
-public class MediaServerApiClient {
+public class StreamGrabber {
 
     //BlockingJobPool<String, Object> jobPool = new BlockingJobPool<>(10, Duration.ofMillis(5000), null);
 
@@ -91,7 +91,7 @@ public class MediaServerApiClient {
 
                 //boolean enabled = !options.optBoolean("disabled", false);
 
-                StreamUpdate streamUpdate = new StreamUpdate(streamName,server, title, alive);
+                StreamUpdate streamUpdate = new StreamUpdate(server, streamName, title, alive);
 
                 result.add(streamUpdate);
             }

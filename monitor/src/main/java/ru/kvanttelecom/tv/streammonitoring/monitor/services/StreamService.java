@@ -77,6 +77,26 @@ public class StreamService {
             updateList.stream().collect(Collectors.toMap(StreamUpdate::getName, Function.identity()));
 
 
+        // ------------------------------------------------------------------------------------------------------
+        // Append server domain name to stream name as postfix
+        // Experimental -----------------------------------------------------------------------------------------
+        List<StreamUpdate> tmp = new ArrayList<>();
+        updateList.forEach(u -> {
+
+            String[] split = u.getServerName().split("\\.");
+            String srvDomName = "";
+            if(split.length > 0) {
+                srvDomName = "." +split[0];
+            }
+            tmp.add(new StreamUpdate(u.getServerName(), u.getName() + srvDomName, u.getTitle(), u.isAlive()));
+        });
+
+         updates =  tmp.stream().collect(Collectors.toMap(StreamUpdate::getName, Function.identity()));
+        // Experimental -----------------------------------------------------------------------------------------
+
+
+
+
         // Обход по всем стримам на одном сервере
         try {
             // Карта стримов на выбранном сервере
