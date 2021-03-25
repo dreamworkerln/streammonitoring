@@ -12,33 +12,41 @@ import java.util.Objects;
  */
 public class Stream {
 
+//    @Getter
+//    private StreamKey key;
+
+    @Getter
+    protected String server;
+
     @Getter
     protected String name;
 
     @Getter
-    protected String title;
+    private String title;
 
     // Is stream online/offline
     @Getter
     @Setter
-    protected boolean alive;
+    private boolean alive;
 
     // Is stream flapping
     @Getter
     @Setter
-    protected boolean flapping;
+    private boolean flapping;
 
     // Internal stream state
     @Getter
     @Setter
     @JsonIgnore
-    protected StreamState state = new StreamState();
+    private StreamState state = new StreamState();
 
     public Stream() {}
 
     @Default
-    public Stream(String name, String title, boolean alive) {
+    public Stream(String server, String name, String title, boolean alive) {
+        
         this.name = name;
+        this.server = server;
         this.title = title;
         this.alive = alive;
         state.setLastUpdateAlive(alive);
@@ -58,11 +66,12 @@ public class Stream {
         if (this == o) return true;
         if (!(o instanceof Stream)) return false;
         Stream stream = (Stream) o;
-        return name.equals(stream.name);
+        return server.equals(stream.server) &&
+            name.equals(stream.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(server, name);
     }
 }

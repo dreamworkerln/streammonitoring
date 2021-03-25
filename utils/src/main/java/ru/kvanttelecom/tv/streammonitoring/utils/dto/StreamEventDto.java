@@ -1,6 +1,7 @@
 package ru.kvanttelecom.tv.streammonitoring.utils.dto;
 
 import lombok.Data;
+import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
 
 import java.util.Set;
@@ -9,23 +10,28 @@ import java.util.Set;
  * Event that something changed with stream
  */
 @Data
-public class StreamEvent {
+public class StreamEventDto {
 
     /**
-     * Stream name - id
+     * Stream name
      */
     private String name;
+
+    /**
+     * Server id
+     */
+    private int serverId;
 
     /**
      * Event type
      */
     private Set<StreamEventType> eventSet;
 
-    public StreamEvent() {}
+    public StreamEventDto() {}
 
 
-    public StreamEvent(String name, Set<StreamEventType> eventSet) {
-        this.name = name;
+    public StreamEventDto(StreamKey key, Set<StreamEventType> eventSet) {
+        this.key = key;
         this.eventSet = eventSet;
     }
 

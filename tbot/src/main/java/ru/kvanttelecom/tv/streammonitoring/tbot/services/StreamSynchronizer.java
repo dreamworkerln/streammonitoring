@@ -8,7 +8,7 @@ import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.BotPro
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp.StreamRpcClient;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.telegram.Telebot;
 import ru.kvanttelecom.tv.streammonitoring.utils.data.Stream;
-import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEvent;
+import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEventDto;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
 import ru.kvanttelecom.tv.streammonitoring.utils.entities.StreamMap;
 
@@ -62,12 +62,12 @@ public class StreamSynchronizer {
     /**
      * Parse update event from monitor
      */
-    public void syncFromEvent(List<StreamEvent> events) {
+    public void syncFromEvent(List<StreamEventDto> events) {
 
         log.trace("StreamSynchronizer: syncFromEvent");
 
         // get streams names from events list
-        List<String> names = events.stream().map(StreamEvent::getName).collect(Collectors.toList());
+        List<String> names = events.stream().map(StreamEventDto::getName).collect(Collectors.toList());
 
         // go to monitor and get full info about updated streams
         Map<String, Stream> alteredStreams = streamRpcClient.findByName(names).stream()
@@ -87,7 +87,7 @@ public class StreamSynchronizer {
         // в alteredStreams этих стримов уже не будет(перед отправкой event monitor их уже удалил).
         // вычисляем разницу - получаем стримы для удаления из streams
 
-        Set<String> fromEvents = events.stream().map(StreamEvent::getName).collect(Collectors.toSet());
+        Set<String> fromEvents = events.stream().map(StreamEventDto::getName).collect(Collectors.toSet());
         Set<String> fromAltered = new HashSet<>(alteredStreams.keySet());
 
         // теперь в fromEvents содержатся стримы, которые были удалены на monitor
@@ -104,10 +104,10 @@ public class StreamSynchronizer {
     // =============================================================================================
 
 
-    private void sendToTelegram(List<StreamEvent> events, Map<String, Stream> alteredStreams) {
+    private void sendToTelegram(List<StreamEventDto> events, Map<String, Stream> alteredStreams) {
 
         List<String> lines = new ArrayList<>();
-        for (StreamEvent event : events) {
+        for (StreamEventDto event : events) {
 
             String name = event.getName();
 
@@ -123,9 +123,9 @@ public class StreamSynchronizer {
             // Filter events -----------------------------------------------------------------
             // 1. remove INIT streams
             // 2. remove flapping streams
-            Predicate<StreamEvent> noInitEvent = e -> !e.getEventSet().contains(StreamEventType.INIT);
+            Predicate<StreamEventDto> noInitEvent = e -> !e.getEventSet().contains(StreamEventType.INIT);
 
-            Predicate<StreamEvent> noFlapEvent = e ->
+            Predicate<StreamEventDto> noFlapEvent = e ->
                 !e.getEventSet().contains(StreamEventType.START_FLAPPING) &&
                 !e.getEventSet().contains(StreamEventType.STOP_FLAPPING);
 

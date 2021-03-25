@@ -10,7 +10,7 @@ import ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.StreamEventSend
 import ru.kvanttelecom.tv.streammonitoring.utils.entities.StreamMap;
 import ru.kvanttelecom.tv.streammonitoring.monitor.entities.ServerMap;
 import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamUpdate;
-import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEvent;
+import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEventDto;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -59,7 +59,7 @@ public class MonitoringScheduler {
         try {
 
             // Events from all servers
-            List<StreamEvent> events = new ArrayList<>();
+            List<StreamEventDto> events = new ArrayList<>();
 
             // StreamUpdate name index - checking stream uniqueness (on all servers)
             Map<String, StreamUpdate> nameIndex = new HashMap<>();
@@ -90,7 +90,7 @@ public class MonitoringScheduler {
 
 
                     // calculate update events for selected server
-                    List<StreamEvent> serverEvents = streamService.applyUpdate(serverName, update);
+                    List<StreamEventDto> serverEvents = streamService.applyUpdate(serverName, update);
 
                     events.addAll(serverEvents);
                 }

@@ -6,7 +6,7 @@ import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEvent;
+import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEventDto;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class StreamEventSender {
     private Binding bindingStreamUpdate;
 
 
-    public void send(List<StreamEvent> events) {
+    public void send(List<StreamEventDto> events) {
 
         String exchanger = exchangeStreamUpdate.getName();
         String routing = bindingStreamUpdate.getRoutingKey();

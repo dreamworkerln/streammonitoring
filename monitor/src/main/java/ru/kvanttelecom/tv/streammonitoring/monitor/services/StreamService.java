@@ -10,7 +10,7 @@ import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamState;
 import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamUpdate;
 import ru.kvanttelecom.tv.streammonitoring.utils.entities.StreamMap;
 import ru.kvanttelecom.tv.streammonitoring.monitor.entities.ServerMap;
-import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEvent;
+import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEventDto;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
 
 import java.util.*;
@@ -69,31 +69,31 @@ public class StreamService {
      * @param updates updates from this server
      * @return calculated StreamEvents from this updates
      */
-    public List<StreamEvent> applyUpdate(String serverName, List<StreamUpdate> updateList) {
+    public List<StreamEventDto> applyUpdate(String serverName, List<StreamUpdate> updateList) {
 
-        List<StreamEvent> result = new ArrayList<>();
+        List<StreamEventDto> result = new ArrayList<>();
 
         Map<String, StreamUpdate> updates =
             updateList.stream().collect(Collectors.toMap(StreamUpdate::getName, Function.identity()));
 
 
-        // ------------------------------------------------------------------------------------------------------
-        // Append server domain name to stream name as postfix
-        // Experimental -----------------------------------------------------------------------------------------
-        List<StreamUpdate> tmp = new ArrayList<>();
-        updateList.forEach(u -> {
-
-            String[] split = u.getServerName().split("\\.");
-            String srvDomName = "";
-            if(split.length > 0) {
-                srvDomName = "." +split[0];
-            }
-            tmp.add(new StreamUpdate(u.getServerName(), u.getName() + srvDomName, u.getTitle(), u.isAlive()));
-        });
-
-         updates =  tmp.stream().collect(Collectors.toMap(StreamUpdate::getName, Function.identity()));
-        // Experimental -----------------------------------------------------------------------------------------
-
+//        // ------------------------------------------------------------------------------------------------------
+//        // Append server domain name to stream name as postfix
+//        // Experimental -----------------------------------------------------------------------------------------
+//        List<StreamUpdate> tmp = new ArrayList<>();
+//        updateList.forEach(u -> {
+//
+//            String[] split = u.getServerName().split("\\.");
+//            String srvDomName = "";
+//            if(split.length > 0) {
+//                srvDomName = "." +split[0];
+//            }
+//            tmp.add(new StreamUpdate(u.getServerName(), u.getName() + srvDomName, u.getTitle(), u.isAlive()));
+//        });
+//
+//         updates =  tmp.stream().collect(Collectors.toMap(StreamUpdate::getName, Function.identity()));
+//        // Experimental -----------------------------------------------------------------------------------------
+//
 
 
 
@@ -144,8 +144,8 @@ public class StreamService {
 
 
                     // create notification that stream has been added/inited
-                    StreamEvent streamEvent = new StreamEvent(streamName, typeList);
-                    result.add(streamEvent);
+                    StreamEventDto streamEventDto = new StreamEventDto(streamName, typeList);
+                    result.add(streamEventDto);
 
                 }
                 // STREAM STATUS CHANGED - existing stream found - check stream status modifications
@@ -155,7 +155,7 @@ public class StreamService {
 
                     // If stream status has been changed
                     if (typeList.size() > 0) {
-                        StreamEvent event = new StreamEvent(streamName, typeList);
+                        StreamEventDto event = new StreamEventDto(streamName, typeList);
                         result.add(event);
 
                         log.debug("{} STREAM: {} {}",typeList, stream.getName(), stream.getTitle());
@@ -182,7 +182,7 @@ public class StreamService {
                     Set<StreamEventType> typeList = new HashSet<>();
                     typeList.add(StreamEventType.DELETED);
 
-                    StreamEvent event = new StreamEvent(streamName, typeList);
+                    StreamEventDto event = new StreamEventDto(streamName, typeList);
                     result.add(event);
 
                     log.debug("{} STREAM: {} {}",typeList, stream.getName(), stream.getTitle());

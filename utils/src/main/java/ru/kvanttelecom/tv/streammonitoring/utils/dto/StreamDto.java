@@ -11,6 +11,11 @@ public class StreamDto {
         private String name;
 
         /**
+         * Server id
+         */
+        private int serverId;
+
+        /**
          * Stream title
          */
         private String title;
