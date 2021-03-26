@@ -4,11 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
-import ru.kvanttelecom.tv.streammonitoring.utils.converter.StreamUpdateConverter;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.Stream;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamState;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamUpdate;
-import ru.kvanttelecom.tv.streammonitoring.utils.entities.StreamMap;
+import ru.kvanttelecom.tv.streammonitoring.core.converters.MediaServerEventConverter;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamState;
+import ru.kvanttelecom.tv.streammonitoring.core.data.events.mediaserver.MediaServerEvent;
+import ru.kvanttelecom.tv.streammonitoring.utils.beans.StreamMap;
 import ru.kvanttelecom.tv.streammonitoring.monitor.entities.ServerMap;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEventDto;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
@@ -36,7 +36,7 @@ public class StreamService {
     private ServerMap servers;
 
     @Autowired
-    private StreamUpdateConverter updateConverter;
+    private MediaServerEventConverter updateConverter;
 
     @Autowired
     private MonitorProperties props;
@@ -69,12 +69,12 @@ public class StreamService {
      * @param updates updates from this server
      * @return calculated StreamEvents from this updates
      */
-    public List<StreamEventDto> applyUpdate(String serverName, List<StreamUpdate> updateList) {
+    public List<StreamEventDto> applyUpdate(String serverName, List<MediaServerEvent> updateList) {
 
         List<StreamEventDto> result = new ArrayList<>();
 
-        Map<String, StreamUpdate> updates =
-            updateList.stream().collect(Collectors.toMap(StreamUpdate::getName, Function.identity()));
+        Map<String, MediaServerEvent> updates =
+            updateList.stream().collect(Collectors.toMap(MediaServerEvent::getName, Function.identity()));
 
 
 //        // ------------------------------------------------------------------------------------------------------
@@ -112,7 +112,7 @@ public class StreamService {
 
             boolean serverHasStream = serverStreams.size() > 0;
 
-            for (StreamUpdate update : updates.values()) {
+            for (MediaServerEvent update : updates.values()) {
 
                 String streamName = update.getName();
                 Stream stream = serverStreams.get(streamName);
@@ -205,7 +205,7 @@ public class StreamService {
     /**
      * Check if stream status has been changed (add/update/delete)
      */
-    private Set<StreamEventType> calcStreamlternation(Stream stream, StreamUpdate update) {
+    private Set<StreamEventType> calcStreamlternation(Stream stream, MediaServerEvent update) {
 
         Set<StreamEventType> result = new HashSet<>();
 

@@ -6,7 +6,7 @@ import com.github.benmanes.caffeine.cache.Expiry;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.stereotype.Component;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;

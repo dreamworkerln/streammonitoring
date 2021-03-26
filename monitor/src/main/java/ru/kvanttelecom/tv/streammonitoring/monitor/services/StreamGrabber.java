@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamUpdate;
+import ru.kvanttelecom.tv.streammonitoring.core.data.events.mediaserver.MediaServerEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,10 +48,10 @@ public class StreamGrabber {
      * Get info about all streams from selected flussonic media server
      * @param server server
      */
-    public List<StreamUpdate> getStreamsUpdate(String server) {
+    public List<MediaServerEvent> getStreamsUpdate(String server) {
 
 
-        List<StreamUpdate> result = new ArrayList<>();
+        List<MediaServerEvent> result = new ArrayList<>();
 
         String url = PROTOCOL + server + "/flussonic/api/media";
 
@@ -91,9 +91,9 @@ public class StreamGrabber {
 
                 //boolean enabled = !options.optBoolean("disabled", false);
 
-                StreamUpdate streamUpdate = new StreamUpdate(server, streamName, title, alive);
+                MediaServerEvent mediaServerEvent = new MediaServerEvent(server, streamName, title, alive, reason);
 
-                result.add(streamUpdate);
+                result.add(mediaServerEvent);
             }
         }
         // try-catch used only to write error message to log, rethrowing

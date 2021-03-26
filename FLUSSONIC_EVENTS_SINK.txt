@@ -1,0 +1,33 @@
+#DEBUG
+
+## on each flussonic media server do
+
+nano /etc/flussonic/flussonic.conf
+add
+
+notify videomonitoring_dev_ssh_tunnel_r {
+  sink http://localhost:8015;
+  only event=stream_started,stream_stopped,source_ready,source_lost;
+}
+
+# ssh reserve port forwarding from flussonic mediaservers to localhost:
+
+## locally do
+
+ssh -fNT -R 8015:localhost:8015 ms1;
+ssh -fNT -R 8015:localhost:8015 ms2;
+ssh -fNT -R 8015:localhost:8015 ms3;
+
+
+# ncat webserver to test:
+ncat -lk localhost 8015 -c 'tee /dev/stderr'
+
+
+# clearup ssh tunnels:
+
+if you only want to list tunnels created by ssh:
+sudo lsof -i -n | egrep '\<ssh\>'
+
+
+if you want to see the tunnels / connections made to a sshd:
+sudo lsof -i -n | egrep '\<sshd\>'

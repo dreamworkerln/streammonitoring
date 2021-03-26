@@ -7,9 +7,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.StreamEventSender;
-import ru.kvanttelecom.tv.streammonitoring.utils.entities.StreamMap;
+import ru.kvanttelecom.tv.streammonitoring.utils.beans.StreamMap;
 import ru.kvanttelecom.tv.streammonitoring.monitor.entities.ServerMap;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamUpdate;
+import ru.kvanttelecom.tv.streammonitoring.core.data.events.mediaserver.MediaServerEvent;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEventDto;
 
 import javax.annotation.PostConstruct;
@@ -62,7 +62,7 @@ public class MonitoringScheduler {
             List<StreamEventDto> events = new ArrayList<>();
 
             // StreamUpdate name index - checking stream uniqueness (on all servers)
-            Map<String, StreamUpdate> nameIndex = new HashMap<>();
+            Map<String, MediaServerEvent> nameIndex = new HashMap<>();
 
             // обходим по всем серверам
             for (Map.Entry<String, StreamMap> server : servers.entrySet()) {
@@ -74,7 +74,7 @@ public class MonitoringScheduler {
                     //log.trace("Scanning server: {}", serverName);
 
                     // get updates from specified flussonic media server
-                    List<StreamUpdate> update = apiClient.getStreamsUpdate(serverName);
+                    List<MediaServerEvent> update = apiClient.getStreamsUpdate(serverName);
 
 
                     checkDuplicate(update, nameIndex);
@@ -129,7 +129,7 @@ public class MonitoringScheduler {
      * @param update update from specific server
      * @param nameIndex streams name index of all streams on all servers
      */
-    private void checkDuplicate(List<StreamUpdate> update, Map<String, StreamUpdate> nameIndex) {
+    private void checkDuplicate(List<MediaServerEvent> update, Map<String, MediaServerEvent> nameIndex) {
         // check for duplicates
 
         if(!checkStreamUniq) {
@@ -139,7 +139,7 @@ public class MonitoringScheduler {
         List<StreamUpdateDuplicate> duplicates = new ArrayList<>();
 
         update.forEach(u -> {
-            StreamUpdate exists = nameIndex.get(u.getName());
+            MediaServerEvent exists = nameIndex.get(u.getName());
             if(nameIndex.containsKey(u.getName())) {
                 duplicates.add(new StreamUpdateDuplicate(exists, u));
             }
@@ -171,11 +171,11 @@ public class MonitoringScheduler {
     private static class StreamUpdateDuplicate {
 
         @Getter
-        private final StreamUpdate exists;
-        private final StreamUpdate update;
+        private final MediaServerEvent exists;
+        private final MediaServerEvent update;
 
 
-        private StreamUpdateDuplicate(StreamUpdate exists, StreamUpdate update) {
+        private StreamUpdateDuplicate(MediaServerEvent exists, MediaServerEvent update) {
             this.exists = exists;
             this.update = update;
         }

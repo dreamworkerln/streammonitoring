@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 import ru.dreamworkerln.spring.utils.common.threadpool.BlockingJobPool;
 import ru.dreamworkerln.spring.utils.common.threadpool.JobResult;
 import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.BotProperties;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.Stream;
-import ru.kvanttelecom.tv.streammonitoring.utils.entities.StreamMap;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.utils.beans.StreamMap;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
@@ -28,7 +28,6 @@ import java.util.function.Function;
 
 import static org.springframework.util.StringUtils.*;
 import static ru.dreamworkerln.spring.utils.common.StringUtils.isBlank;
-import static ru.kvanttelecom.tv.streammonitoring.utils.dto.constants.Constants.PROTOCOL;
 
 @Service
 @Slf4j

@@ -7,7 +7,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
 
 import java.util.ArrayList;
 import java.util.List;

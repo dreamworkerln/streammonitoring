@@ -3,11 +3,11 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <artifactId>streammonitoring</artifactId>
-        <groupId>ru.kvant-telecom.tv.monitoring</groupId>
-        <version>0.1</version>
-    </parent>
+	<parent>
+		<artifactId>streammonitoring</artifactId>
+		<groupId>ru.kvant-telecom.tv.monitoring</groupId>
+		<version>0.1</version>
+	</parent>
 
 	<artifactId>tbot</artifactId>
 
@@ -22,17 +22,19 @@
 		<dependency>
 			<groupId>ru.kvant-telecom.tv.monitoring</groupId>
 			<artifactId>utils</artifactId>
-			<version>0.1</version>
+			<version>${project.version}</version>
 			<scope>compile</scope>
 		</dependency>
-        <dependency>
-            <groupId>ru.kvant-telecom.tv.monitoring</groupId>
-            <artifactId>utils</artifactId>
-            <version>0.1</version>
-            <scope>compile</scope>
-        </dependency>
 
-    </dependencies>
+		<!--module core -->
+		<dependency>
+			<groupId>ru.kvant-telecom.tv.monitoring</groupId>
+			<artifactId>core</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+	</dependencies>
 
 	<build>
 		<plugins>
@@ -41,7 +43,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
-		<finalName>${project.artifactId}-${app.version}</finalName>
+		<finalName>${project.artifactId}-${project.version}</finalName>
 	</build>
 
 </project>

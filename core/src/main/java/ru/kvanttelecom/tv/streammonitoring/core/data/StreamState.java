@@ -1,8 +1,9 @@
-package ru.kvanttelecom.tv.streammonitoring.utils.data;
+package ru.kvanttelecom.tv.streammonitoring.core.data;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import ru.kvanttelecom.tv.streammonitoring.core.data.events.mediaserver.MediaServerEvent;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -41,7 +42,7 @@ public class StreamState {
      * @param update StreamUpdate
      * @return null, если вычисление не производилось, double - результат
      */
-    public Double calculateUpdateAliveFreq(StreamUpdate update) {
+    public Double calculateUpdateAliveFreq(MediaServerEvent update) {
 
         Double result = null;
 

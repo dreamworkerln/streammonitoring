@@ -6,14 +6,15 @@ import lombok.Data;
 public class StreamDto {
 
         /**
-         * Stream name
-         */
-        private String name;
-
-        /**
          * Server id
          */
         private int serverId;
+
+
+        /**
+         * Stream name
+         */
+        private String name;
 
         /**
          * Stream title

@@ -7,10 +7,10 @@ import org.springframework.util.Assert;
 import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.BotProperties;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp.StreamRpcClient;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.telegram.Telebot;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEventDto;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
-import ru.kvanttelecom.tv.streammonitoring.utils.entities.StreamMap;
+import ru.kvanttelecom.tv.streammonitoring.utils.beans.StreamMap;
 
 import java.util.*;
 import java.util.function.Function;

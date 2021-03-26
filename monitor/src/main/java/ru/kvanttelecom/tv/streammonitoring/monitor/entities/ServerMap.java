@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.dreamworkerln.spring.utils.common.mapwrapper.ConcurrentNavigableMapWrapper;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
-import ru.kvanttelecom.tv.streammonitoring.utils.entities.StreamMap;
+import ru.kvanttelecom.tv.streammonitoring.utils.beans.StreamMap;
 
 
 import javax.annotation.PostConstruct;

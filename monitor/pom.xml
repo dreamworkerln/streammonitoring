@@ -18,19 +18,26 @@
 			<artifactId>spring-boot-starter</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
 		<!--module utils -->
 		<dependency>
 			<groupId>ru.kvant-telecom.tv.monitoring</groupId>
 			<artifactId>utils</artifactId>
-			<version>0.1</version>
+			<version>${project.version}</version>
 			<scope>compile</scope>
 		</dependency>
-        <dependency>
-            <groupId>ru.kvant-telecom.tv.monitoring</groupId>
-            <artifactId>utils</artifactId>
-            <version>0.1</version>
-            <scope>compile</scope>
-        </dependency>
+
+		<!--module core -->
+		<dependency>
+			<groupId>ru.kvant-telecom.tv.monitoring</groupId>
+			<artifactId>core</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
 
     </dependencies>
 
@@ -41,7 +48,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
-		<finalName>${project.artifactId}-${app.version}</finalName>
+		<finalName>${project.artifactId}-${project.version}</finalName>
 	</build>
 
 </project>
