@@ -1,0 +1,14 @@
+version: '3.2'
+services:
+  monitor:
+    image: "dreamworkerln/streammonitoring-relay"
+    environment:
+      SPRING_APPLICATION_JSON: '{
+        "logging.level.ru.kvanttelecom.tv.streammonitoring": "TRACE,
+        "server.port": "8015",
+        "client.protocol" :"http://",
+        "sink.url.list": "10.10.10.10:10/mediaserver_events, 10.10.10.20:10/mediaserver_events"
+      }'
+    ports:
+      - 8015:8015
+    restart: always

@@ -1,0 +1,17 @@
+package ru.kvanttelecom.tv.streammonitoring.monitor.converters;
+
+import org.mapstruct.Mapper;
+import ru.kvanttelecom.tv.streammonitoring.monitor.data.events.mediaserver.MediaServerEvent;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+
+
+import javax.annotation.PostConstruct;
+
+@Mapper
+public abstract class MediaServerEventConverter {
+
+    @PostConstruct
+    private void postConstruct() {}
+
+    public abstract Stream toStream(MediaServerEvent update);
+}

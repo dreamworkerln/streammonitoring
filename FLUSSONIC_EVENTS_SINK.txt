@@ -5,7 +5,7 @@
 nano /etc/flussonic/flussonic.conf
 add
 
-notify videomonitoring_dev_ssh_tunnel_r {
+notify streammonitoring {
   sink http://localhost:8015;
   only event=stream_started,stream_stopped,source_ready,source_lost;
 }

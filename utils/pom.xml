@@ -6,12 +6,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>streammonitoring</artifactId>
-        <groupId>ru.kvant-telecom.tv.monitoring</groupId>
+        <artifactId>stream-monitoring</artifactId>
+        <groupId>ru.kvant-telecom.tv.streammonitoring</groupId>
         <version>0.1</version>
     </parent>
 
     <artifactId>utils</artifactId>
-    <packaging>jar</packaging>
 
 </project>

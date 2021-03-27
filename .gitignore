@@ -32,14 +32,16 @@ build/
 ### VS Code ###
 .vscode/
 
-### user-sensitive data ###
-/tbot/application.properties
-/monitor/application.properties
-
-
 ### Log ###
 log/
 
 
-### Docker testing/debugging ###
-zinfrastructure/docker-compose-testing/
+### user-sensitive data ###
+application-dev.properties
+
+monitor-dev.properties
+relay-dev.properties
+tbot-dev.properties
+
+# docker-compose configs
+docker-compose-testing/

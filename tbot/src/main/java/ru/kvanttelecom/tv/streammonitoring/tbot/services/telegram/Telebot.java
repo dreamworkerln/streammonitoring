@@ -11,9 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.dreamworkerln.spring.utils.common.threadpool.BlockingJobPool;
 import ru.dreamworkerln.spring.utils.common.threadpool.JobResult;
-import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.BotProperties;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
-import ru.kvanttelecom.tv.streammonitoring.utils.beans.StreamMap;
+import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.tbot.beans.Stream;
+import ru.kvanttelecom.tv.streammonitoring.tbot.beans.StreamMap;
+import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.ApplicationProperties;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
@@ -57,7 +58,7 @@ public class Telebot {
 
 
     @Autowired
-    BotProperties props;
+    ApplicationProperties props;
 
     @Autowired
     private StreamMap streams;
@@ -219,7 +220,7 @@ public class Telebot {
         List<String> linesFlap = new ArrayList<>();
 
 
-        for (Map.Entry<String, Stream> entry : streams.entrySet()) {
+        for (Map.Entry<StreamKey, Stream> entry : streams.entrySet()) {
 
             Stream stream = entry.getValue();
 

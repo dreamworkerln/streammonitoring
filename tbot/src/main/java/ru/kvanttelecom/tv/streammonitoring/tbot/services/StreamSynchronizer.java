@@ -4,16 +4,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.BotProperties;
+import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.tbot.beans.Stream;
+import ru.kvanttelecom.tv.streammonitoring.tbot.beans.StreamMap;
+import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.ApplicationProperties;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp.StreamRpcClient;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.telegram.Telebot;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEventDto;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
-import ru.kvanttelecom.tv.streammonitoring.utils.beans.StreamMap;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -36,7 +36,7 @@ public class StreamSynchronizer {
     private Telebot telebot;
 
     @Autowired
-    BotProperties props;
+    ApplicationProperties props;
 
     /**
      * Reload all streams from monitor
@@ -44,8 +44,7 @@ public class StreamSynchronizer {
     public void syncAll() {
         log.trace("StreamSynchronizer: Reloading all streams");
 
-        Map<String, Stream> updates = streamRpcClient.findAll().stream()
-            .collect(Collectors.toMap(Stream::getName, Function.identity()));
+        Map<StreamKey, Stream> updates = streamRpcClient.findAll();
 
         // prevent client to see empty streams Map
         // ---------------------------------------------------------------
@@ -70,15 +69,14 @@ public class StreamSynchronizer {
         List<String> names = events.stream().map(StreamEventDto::getName).collect(Collectors.toList());
 
         // go to monitor and get full info about updated streams
-        Map<String, Stream> alteredStreams = streamRpcClient.findByName(names).stream()
-            .collect(Collectors.toMap(Stream::getName, Function.identity()));
+        Map<StreamKey, Stream> alteredStreams = streamRpcClient.findByKeys(null);
 
         // updating all local streams (if alteredStreams have any)
-        streams.putAll(alteredStreams);
+        streams.putAll(null); // alteredStreams
 
         // Sending message to telegram
         // Doing it before deleting streams or will have no info about deleted stream
-        sendToTelegram(events, alteredStreams);
+        sendToTelegram(events, null);// alteredStreams
 
         // DELETING STREAMS -----------------------------------------------------
 
@@ -87,35 +85,35 @@ public class StreamSynchronizer {
         // в alteredStreams этих стримов уже не будет(перед отправкой event monitor их уже удалил).
         // вычисляем разницу - получаем стримы для удаления из streams
 
-        Set<String> fromEvents = events.stream().map(StreamEventDto::getName).collect(Collectors.toSet());
-        Set<String> fromAltered = new HashSet<>(alteredStreams.keySet());
+        //Set<String> fromEvents = events.stream().map(StreamEventDto::getName).collect(Collectors.toSet());
+        //Set<String> fromAltered = new HashSet<>(alteredStreams.keySet());
 
         // теперь в fromEvents содержатся стримы, которые были удалены на monitor
-        fromEvents.removeAll(fromAltered);
+        //fromEvents.removeAll(fromAltered);
 
         // удаляем локально стримы из fromEvents
-        if(fromEvents.size() > 0) {
-            log.debug("DELETED STREAMS: {}", fromEvents);
-            streams.removeAll(fromEvents);
-        }
+//        if(fromEvents.size() > 0) {
+//            log.debug("DELETED STREAMS: {}", fromEvents);
+//            streams.removeAll(fromEvents);
+//        }
     }
 
 
     // =============================================================================================
 
 
-    private void sendToTelegram(List<StreamEventDto> events, Map<String, Stream> alteredStreams) {
+    private void sendToTelegram(List<StreamEventDto> events, Map<StreamKey, Stream> alteredStreams) {
 
         List<String> lines = new ArrayList<>();
         for (StreamEventDto event : events) {
 
-            String name = event.getName();
+            StreamKey key = null;//event.getName();
 
-            Stream stream = alteredStreams.get(name);
+            Stream stream = alteredStreams.get(key);
 
             // If stream has been deleted in monitor, borrow stream from local streams
             if(stream == null) {
-                stream = streams.get(name);
+                stream = streams.get(key);
             }
 
             Assert.notNull(stream, "Stream == null");

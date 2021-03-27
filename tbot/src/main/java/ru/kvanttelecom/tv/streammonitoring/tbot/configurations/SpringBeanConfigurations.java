@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestTemplate;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
-import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.BotProperties;
+import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.ApplicationProperties;
 
 import java.time.Duration;
 
@@ -26,9 +26,11 @@ public class SpringBeanConfigurations {
 //    ApplicationContext applicationContext;
 
     @Autowired
-    BotProperties props;
+    ApplicationProperties props;
 
     private final int HTTP_TIMEOUT = 4000;
+
+
 
 
 

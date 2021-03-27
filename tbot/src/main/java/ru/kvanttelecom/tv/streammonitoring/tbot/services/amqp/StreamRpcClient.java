@@ -7,12 +7,10 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.tbot.beans.Stream;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static ru.kvanttelecom.tv.streammonitoring.utils.configurations.amqp.AMQPConfiguration.STREAM_RPC_GET_ALL_STREAMS_MAGIC_CONSTANT;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -27,14 +25,19 @@ public class StreamRpcClient {
     @Autowired
     private Binding bindingStreamRpc;
 
-    public List<Stream> findAll() {
+    public Map<StreamKey,Stream> findAll() {
 
-        List<Stream> result;
+        Map<StreamKey,Stream> result;
         log.trace("RPC REQUEST <FIND STREAMS ALL>");
 
-        List<String> names = List.of(STREAM_RPC_GET_ALL_STREAMS_MAGIC_CONSTANT);
+        //List<String> names = List.of(STREAM_RPC_GET_ALL_STREAMS_MAGIC_CONSTANT);
 
-        result = findRpc(names);
+        String exchanger = exchangeStreamRpc.getName();
+        String routing = bindingStreamRpc.getRoutingKey();
+
+        ParameterizedTypeReference<Map<StreamKey,Stream>> typeRef = new ParameterizedTypeReference<>() {};
+        result = template.convertSendAndReceiveAsType(exchanger, routing, new Long(5), typeRef);
+        log.trace("RPC RESPONSE: {}", result);
 
         if(result == null) {
             throw new RuntimeException("RPC <FIND STREAMS ALL>: NO RESPONSE");
@@ -44,17 +47,22 @@ public class StreamRpcClient {
 
 
 
-    public List<Stream> findByName(List<String> names) {
+    public Map<StreamKey,Stream> findByKeys(Set<StreamKey> names) {
 
-        List<Stream> result;
+        Map<StreamKey,Stream> result;
 
         if(names.size() == 0) {
-            return new ArrayList<>();
+            return new HashMap<>();
         }
 
         log.trace("RPC REQUEST <FIND STREAMS BY NAME>: {}", names);
 
-        result = findRpc(names);
+        String exchanger = exchangeStreamRpc.getName();
+        String routing = bindingStreamRpc.getRoutingKey();
+
+        ParameterizedTypeReference<Map<StreamKey,Stream>> typeRef = new ParameterizedTypeReference<>() {};
+        result = template.convertSendAndReceiveAsType(exchanger, routing, names, typeRef);
+        log.trace("RPC RESPONSE: {}", result);
 
         if(result == null) {
             throw new RuntimeException("RPC <FIND STREAMS BY NAME>: NO RESPONSE");
@@ -66,15 +74,6 @@ public class StreamRpcClient {
     // ----------------------------------------------------------------------------
 
 
-    private List<Stream> findRpc(List<String> names) {
-        List<Stream> result;
-        String exchanger = exchangeStreamRpc.getName();
-        String routing = bindingStreamRpc.getRoutingKey();
 
-        ParameterizedTypeReference<ArrayList<Stream>> typeRef = new ParameterizedTypeReference<>() {};
-        result = template.convertSendAndReceiveAsType(exchanger, routing, names, typeRef);
-        log.trace("RPC RESPONSE: {}", result);
-        return result;
-    }
 
 }

@@ -1,27 +1,24 @@
 package ru.kvanttelecom.tv.streammonitoring.utils.data;
 
+
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class StreamKey {
+
+public class StreamKey implements Serializable {
 
     @Getter
-    private final String server;
+    protected String serverName;
     @Getter
-    private final String name;
+    protected String streamName;
 
-    public StreamKey(String server, String name) {
-        this.server = server;
-        this.name = name;
-    }
+    public StreamKey() {}
 
-    @Override
-    public String toString() {
-        return "StreamKey{" +
-            "server='" + server + '\'' +
-            ", name='" + name + '\'' +
-            '}';
+    public StreamKey(String serverName, String streamName) {
+        this.serverName = serverName;
+        this.streamName = streamName;
     }
 
     @Override
@@ -29,12 +26,20 @@ public class StreamKey {
         if (this == o) return true;
         if (!(o instanceof StreamKey)) return false;
         StreamKey streamKey = (StreamKey) o;
-        return server.equals(streamKey.server) &&
-            name.equals(streamKey.name);
+        return serverName.equals(streamKey.serverName) &&
+            streamName.equals(streamKey.streamName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(server, name);
+        return Objects.hash(serverName, streamName);
+    }
+
+    @Override
+    public String toString() {
+        return "StreamKey{" +
+            "serverName='" + serverName + '\'' +
+            ", streamName='" + streamName + '\'' +
+            '}';
     }
 }
