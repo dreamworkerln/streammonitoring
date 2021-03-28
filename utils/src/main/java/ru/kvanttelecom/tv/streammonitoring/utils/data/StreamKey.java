@@ -2,6 +2,7 @@ package ru.kvanttelecom.tv.streammonitoring.utils.data;
 
 
 import lombok.Getter;
+import ru.dreamworkerln.spring.utils.common.annotations.Default;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -10,12 +11,12 @@ import java.util.Objects;
 public class StreamKey implements Serializable {
 
     @Getter
-    protected String serverName;
+    private String serverName;
     @Getter
-    protected String streamName;
+    private String streamName;
 
-    public StreamKey() {}
 
+    @Default
     public StreamKey(String serverName, String streamName) {
         this.serverName = serverName;
         this.streamName = streamName;

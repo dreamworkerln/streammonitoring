@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
 import ru.dreamworkerln.spring.utils.common.threadpool.BlockingJobPool;
 import ru.dreamworkerln.spring.utils.common.threadpool.JobResult;
+import ru.kvanttelecom.tv.streammonitoring.core.configurations.properties.CoreCommonProperties;
 import ru.kvanttelecom.tv.streammonitoring.relay.configurations.properties.RelayProperties;
 
 import java.util.List;
@@ -21,10 +22,15 @@ public class EventSender {
     private RelayProperties props;
 
     @Autowired
+    CoreCommonProperties commonProps;
+
+    @Autowired
     private RestClient restClient;
 
     @Autowired
     BlockingJobPool<Void,Void> jobPool;
+
+
 
 
     public void send(String json) {
@@ -33,7 +39,7 @@ public class EventSender {
             jobPool.add(null,
                 unchecked(unused -> {
                 //TimeUnit.SECONDS.sleep(10);
-                    restClient.post("http://" + receiver, json);
+                    restClient.post(commonProps.getProtocol() + receiver, json);
                     return new JobResult<>();
                 }));
         }

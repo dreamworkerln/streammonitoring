@@ -25,6 +25,7 @@
         <module>relay</module>
         <module>monitor</module>
         <module>tbot</module>
+        <module>testmodule</module>
     </modules>
 
     <properties>
