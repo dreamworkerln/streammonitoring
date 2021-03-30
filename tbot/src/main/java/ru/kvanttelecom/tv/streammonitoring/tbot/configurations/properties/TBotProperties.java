@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 @Component
-public class ApplicationProperties {
+public class TBotProperties {
 
     @Autowired
     Environment env;

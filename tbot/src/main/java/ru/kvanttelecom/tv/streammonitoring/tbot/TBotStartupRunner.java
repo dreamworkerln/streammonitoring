@@ -7,6 +7,6 @@ import ru.kvanttelecom.tv.streammonitoring.utils.startuprunner.BaseStartupRunner
 
 @Component
 @Slf4j
-public class BotStartupRunner extends BaseStartupRunner {
+public class TBotStartupRunner extends BaseStartupRunner {
 
 }

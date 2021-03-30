@@ -7,7 +7,7 @@ import org.springframework.util.Assert;
 import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.tbot.beans.Stream;
 import ru.kvanttelecom.tv.streammonitoring.tbot.beans.StreamMap;
-import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.ApplicationProperties;
+import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.TBotProperties;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp.StreamRpcClient;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.telegram.Telebot;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEventDto;
@@ -36,7 +36,7 @@ public class StreamSynchronizer {
     private Telebot telebot;
 
     @Autowired
-    ApplicationProperties props;
+    TBotProperties props;
 
     /**
      * Reload all streams from monitor

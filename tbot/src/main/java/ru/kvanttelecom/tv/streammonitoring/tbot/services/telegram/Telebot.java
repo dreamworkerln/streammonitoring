@@ -14,7 +14,7 @@ import ru.dreamworkerln.spring.utils.common.threadpool.JobResult;
 import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.tbot.beans.Stream;
 import ru.kvanttelecom.tv.streammonitoring.tbot.beans.StreamMap;
-import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.ApplicationProperties;
+import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.TBotProperties;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
@@ -58,7 +58,7 @@ public class Telebot {
 
 
     @Autowired
-    ApplicationProperties props;
+    TBotProperties props;
 
     @Autowired
     private StreamMap streams;

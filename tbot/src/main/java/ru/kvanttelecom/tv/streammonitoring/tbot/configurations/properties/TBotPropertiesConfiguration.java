@@ -19,15 +19,15 @@ import org.springframework.context.annotation.PropertySources;
  * https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config
  */
 @Configuration
-public class ApplicationPropertiesConfiguration {
+public class TBotPropertiesConfiguration {
 
 
     @Configuration
     @Profile("default")
     @PropertySources({
-        @PropertySource(value = "classpath:application.properties", ignoreResourceNotFound = true),
-        @PropertySource(value = "file:application.properties", ignoreResourceNotFound = true),
-        @PropertySource(value = "file:config/application.properties", ignoreResourceNotFound = true),
+        @PropertySource(value = "classpath:tbot.properties", ignoreResourceNotFound = true),
+        @PropertySource(value = "file:tbot.properties", ignoreResourceNotFound = true),
+        @PropertySource(value = "file:config/tbot.properties", ignoreResourceNotFound = true),
     })
     static class DefaultProperties {}
 
@@ -35,9 +35,9 @@ public class ApplicationPropertiesConfiguration {
     @Configuration
     @Profile("!default")
     @PropertySources({
-        @PropertySource(value = "classpath:application-${spring.profiles.active}.properties", ignoreResourceNotFound = true),
-        @PropertySource(value = "file:application-${spring.profiles.active}.properties", ignoreResourceNotFound = true),
-        @PropertySource(value = "file:config/application-${spring.profiles.active}", ignoreResourceNotFound = true),
+        @PropertySource(value = "classpath:tbot-${spring.profiles.active}.properties", ignoreResourceNotFound = true),
+        @PropertySource(value = "file:tbot-${spring.profiles.active}.properties", ignoreResourceNotFound = true),
+        @PropertySource(value = "file:config/tbot-${spring.profiles.active}", ignoreResourceNotFound = true),
     })
     static class NonDefaultProperties {}
 }
