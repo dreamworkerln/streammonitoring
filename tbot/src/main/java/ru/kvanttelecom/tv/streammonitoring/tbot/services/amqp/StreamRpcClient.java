@@ -36,7 +36,7 @@ public class StreamRpcClient {
         String routing = bindingStreamRpc.getRoutingKey();
 
         ParameterizedTypeReference<Map<StreamKey,Stream>> typeRef = new ParameterizedTypeReference<>() {};
-        result = template.convertSendAndReceiveAsType(exchanger, routing, new Long(5), typeRef);
+        result = template.convertSendAndReceiveAsType(exchanger, routing, new HashSet<>(), typeRef);
         log.trace("RPC RESPONSE: {}", result);
 
         if(result == null) {

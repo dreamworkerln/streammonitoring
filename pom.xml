@@ -20,12 +20,12 @@
     <modules>
         <module>utils</module>
         <module>core/core-common</module>
-        <module>core/core-db</module>
-        <module>configurations</module>
+        <module>core/core-amqp</module>
+        <module>core/core-services</module>
         <module>relay</module>
         <module>monitor</module>
         <module>tbot</module>
-        <module>testmodule</module>
+
     </modules>
 
     <properties>
@@ -228,7 +228,7 @@
                 <configuration>
                     <excludes>
                         <exclude>application-dev*</exclude>
-                        <exclude>core-db-dev*</exclude>
+                        <exclude>core-services-dev*</exclude>
                         <exclude>monitor-dev*</exclude>
                         <exclude>relay-dev*</exclude>
                         <exclude>tbot-dev*</exclude>

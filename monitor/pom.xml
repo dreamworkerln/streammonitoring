@@ -29,7 +29,23 @@
 		<!--module core-common -->
 		<dependency>
 			<groupId>ru.kvant-telecom.tv.streammonitoring</groupId>
-			<artifactId>core-db</artifactId>
+			<artifactId>core-common</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<!--module core-services -->
+		<dependency>
+			<groupId>ru.kvant-telecom.tv.streammonitoring</groupId>
+			<artifactId>core-services</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<!--module core-amqp -->
+		<dependency>
+			<groupId>ru.kvant-telecom.tv.streammonitoring</groupId>
+			<artifactId>core-amqp</artifactId>
 			<version>${project.version}</version>
 			<scope>compile</scope>
 		</dependency>

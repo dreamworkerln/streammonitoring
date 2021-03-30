@@ -23,45 +23,7 @@ import java.time.Duration;
 @Slf4j
 public class SpringBeanConfigurations {
 
-    private final int HTTP_TIMEOUT = 4000;
-
     @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder) {
-        return
-            builder.setConnectTimeout(Duration.ofMillis(HTTP_TIMEOUT))
-                .setReadTimeout(Duration.ofMillis(HTTP_TIMEOUT))
-                .build();
-    }
-
-
-    @Bean
-    public RestClient restClient(RestTemplate restTemplate) {
-        return new RestClient(restTemplate, null, null);
-    }
-
-
-    @Primary
-    @Bean
-    public ObjectMapper objectMapper() {
-
-        // ObjectMapper is threadsafe
-
-        // allow convertation to/from Instant
-        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-        // will write as string ISO 8601
-        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC);
-        //mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
-        //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        //mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true);
-        return mapper;
-    }
-
-    @Bean
-
     BlockingJobPool<Void,Void> jobPool() {
         return new BlockingJobPool<>(10, Duration.ofSeconds(1), jr -> {
             if(jr.getException() != null) {

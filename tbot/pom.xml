@@ -26,14 +26,6 @@
 			<scope>compile</scope>
 		</dependency>
 
-		<!--module configurations -->
-		<dependency>
-			<groupId>ru.kvant-telecom.tv.streammonitoring</groupId>
-			<artifactId>configurations</artifactId>
-			<version>${project.version}</version>
-			<scope>compile</scope>
-		</dependency>
-
 		<!--module core-common -->
 		<dependency>
 			<groupId>ru.kvant-telecom.tv.streammonitoring</groupId>
