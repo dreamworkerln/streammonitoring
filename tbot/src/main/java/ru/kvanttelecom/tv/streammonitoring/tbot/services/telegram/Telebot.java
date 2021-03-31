@@ -3,6 +3,9 @@ package ru.kvanttelecom.tv.streammonitoring.tbot.services.telegram;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.request.Keyboard;
+import com.pengrad.telegrambot.model.request.KeyboardButton;
+import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import lombok.SneakyThrows;
@@ -11,8 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.dreamworkerln.spring.utils.common.threadpool.BlockingJobPool;
 import ru.dreamworkerln.spring.utils.common.threadpool.JobResult;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
-import ru.kvanttelecom.tv.streammonitoring.tbot.beans.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.tbot.entities.Stream;
 import ru.kvanttelecom.tv.streammonitoring.tbot.beans.StreamMap;
 import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.TBotProperties;
 
@@ -213,9 +216,6 @@ public class Telebot {
 
 
         StringBuilder sb = new StringBuilder();
-
-
-
         List<String> linesDown = new ArrayList<>();
         List<String> linesFlap = new ArrayList<>();
 
@@ -263,7 +263,18 @@ public class Telebot {
             sb.append("ALL ONLINE");
         }
 
-        SendResponse response = sendMessage(chatId, sb.toString());
+
+
+        Keyboard keyboard = new ReplyKeyboardMarkup(
+            new KeyboardButton("text"),
+            new KeyboardButton("contact").requestContact(true),
+            new KeyboardButton("location").requestLocation(true));
+
+
+        SendMessage message = new SendMessage(56,"786").replyMarkup(keyboard);
+        bot.execute(message);
+
+        //SendResponse response = sendMessage(chatId, sb.toString());
     }
 
 

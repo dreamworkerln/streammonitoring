@@ -2,13 +2,12 @@ package ru.kvanttelecom.tv.streammonitoring.core.cache.levels;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.cache.CacheLevel;
 import ru.kvanttelecom.tv.streammonitoring.core.repositories.StreamRepository;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 
 import javax.annotation.PostConstruct;
 

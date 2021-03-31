@@ -14,7 +14,7 @@ package ru.kvanttelecom.tv.streammonitoring.core.cache.levels;
 //import org.springframework.stereotype.Component;
 //import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
 //import ru.kvanttelecom.tv.streammonitoring.core.cache.CacheLevel;
-//import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
+//import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 //
 //import javax.annotation.PostConstruct;
 //import java.util.Collection;
@@ -22,23 +22,18 @@ package ru.kvanttelecom.tv.streammonitoring.core.cache.levels;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.MapStoreConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
-import com.hazelcast.map.MapLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.kvanttelecom.tv.streammonitoring.core.cache.CacheLevel;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 
 import javax.annotation.PostConstruct;
-import java.util.Collection;
-import java.util.Map;
 
 
 @Component

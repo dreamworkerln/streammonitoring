@@ -4,7 +4,7 @@ import lombok.*;
 import ru.dreamworkerln.spring.utils.common.annotations.Default;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamState;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 
 import javax.persistence.*;
 

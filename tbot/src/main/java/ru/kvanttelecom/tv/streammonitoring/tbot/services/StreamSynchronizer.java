@@ -4,13 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
-import ru.kvanttelecom.tv.streammonitoring.tbot.beans.Stream;
+import ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp.StreamRpcClient;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.tbot.entities.Stream;
 import ru.kvanttelecom.tv.streammonitoring.tbot.beans.StreamMap;
 import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.TBotProperties;
-import ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp.StreamRpcClient;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.telegram.Telebot;
-import ru.kvanttelecom.tv.streammonitoring.utils.dto.StreamEventDto;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamEventDto;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
 
 import java.util.*;
@@ -29,7 +29,7 @@ public class StreamSynchronizer {
     @Autowired
     private StreamMap streams;
 
-    @Autowired
+    //@Autowired
     private StreamRpcClient streamRpcClient;
 
     @Autowired
@@ -61,22 +61,22 @@ public class StreamSynchronizer {
     /**
      * Parse update event from monitor
      */
-    public void syncFromEvent(List<StreamEventDto> events) {
+    public void syncFromEvent(List<StreamEventDto> update) {
 
         log.trace("StreamSynchronizer: syncFromEvent");
 
-        // get streams names from events list
-        List<String> names = events.stream().map(StreamEventDto::getName).collect(Collectors.toList());
+        // get StreamKey from event update list
+        Set<StreamKey> streamKeys = update.stream().map(StreamEventDto::getStreamKey).collect(Collectors.toSet());
 
         // go to monitor and get full info about updated streams
-        Map<StreamKey, Stream> alteredStreams = streamRpcClient.findByKeys(null);
+        Map<StreamKey, Stream> alteredStreams = streamRpcClient.findByKeys(streamKeys);
 
         // updating all local streams (if alteredStreams have any)
         streams.putAll(null); // alteredStreams
 
         // Sending message to telegram
         // Doing it before deleting streams or will have no info about deleted stream
-        sendToTelegram(events, null);// alteredStreams
+        sendToTelegram(update, null);// alteredStreams
 
         // DELETING STREAMS -----------------------------------------------------
 

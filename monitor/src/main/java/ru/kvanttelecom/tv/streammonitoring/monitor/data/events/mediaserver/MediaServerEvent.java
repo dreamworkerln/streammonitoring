@@ -1,7 +1,7 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.data.events.mediaserver;
 
 import lombok.Getter;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.enums.MediaServerEventType;
 
 

@@ -1,5 +1,8 @@
 package ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp;
 
+/**
+ * AMQP queues, exchangers, binging Beans identifiers
+ */
 public class AmqpId {
 
     public static class queue {

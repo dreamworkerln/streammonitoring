@@ -1,4 +1,4 @@
-package ru.kvanttelecom.tv.streammonitoring.utils.dto;
+package ru.kvanttelecom.tv.streammonitoring.core.dto.stream;
 
 import lombok.Data;
 

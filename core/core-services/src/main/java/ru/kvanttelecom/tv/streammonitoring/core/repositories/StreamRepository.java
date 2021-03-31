@@ -7,9 +7,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.repositories._base.CustomRepository;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 
-import java.util.Optional;
 import java.util.Set;
 
 @Repository

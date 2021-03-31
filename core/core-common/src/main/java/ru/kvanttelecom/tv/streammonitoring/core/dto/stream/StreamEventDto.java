@@ -1,4 +1,4 @@
-package ru.kvanttelecom.tv.streammonitoring.utils.dto;
+package ru.kvanttelecom.tv.streammonitoring.core.dto.stream;
 
 import lombok.Data;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
@@ -19,7 +19,7 @@ public class StreamEventDto {
     /**
      * Stream name
      */
-    private String name;
+    private StreamKey streamKey;
 
     /**
      * Event type
@@ -28,10 +28,8 @@ public class StreamEventDto {
 
     public StreamEventDto() {}
 
-
-    public StreamEventDto(long serverId, String stream, Set<StreamEventType> eventSet) {
-        this.serverId = serverId;
-        this.name = name;
+    public StreamEventDto(StreamKey streamKey, Set<StreamEventType> eventSet) {
+        this.streamKey = streamKey;
         this.eventSet = eventSet;
     }
 

@@ -1,4 +1,4 @@
-package ru.kvanttelecom.tv.streammonitoring.core.services.amqp;
+package ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.AmqpId;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.services.stream.StreamService;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 
 import java.util.Map;
 import java.util.Set;

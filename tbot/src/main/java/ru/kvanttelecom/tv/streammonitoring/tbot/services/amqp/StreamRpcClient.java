@@ -5,11 +5,14 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
-import ru.kvanttelecom.tv.streammonitoring.tbot.beans.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.AmqpId;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.tbot.entities.Stream;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
 @Service
@@ -19,21 +22,31 @@ public class StreamRpcClient {
     @Autowired
     private RabbitTemplate template;
 
+    @Qualifier(AmqpId.exchanger.stream.rpc.findAll)
     @Autowired
-    private DirectExchange exchangeStreamRpc;
+    private DirectExchange exchangerStreamRpcFindAll;
+
+    @Qualifier(AmqpId.binding.stream.rpc.findAll)
+    private Binding bindingStreamRpcFindAll;
 
     @Autowired
-    private Binding bindingStreamRpc;
+    @Qualifier(AmqpId.exchanger.stream.rpc.findAll)
+    private DirectExchange exchangeStreamRpcFindByKeys;
+
+    @Qualifier(AmqpId.binding.stream.rpc.findByKeys)
+    private Binding bindingStreamRpcFindByKeys;
+
+    @PostConstruct
+    private void postConstruct() {
+    }
 
     public Map<StreamKey,Stream> findAll() {
 
         Map<StreamKey,Stream> result;
         log.trace("RPC REQUEST <FIND STREAMS ALL>");
 
-        //List<String> names = List.of(STREAM_RPC_GET_ALL_STREAMS_MAGIC_CONSTANT);
-
-        String exchanger = exchangeStreamRpc.getName();
-        String routing = bindingStreamRpc.getRoutingKey();
+        String exchanger = exchangerStreamRpcFindAll.getName();
+        String routing = bindingStreamRpcFindAll.getRoutingKey();
 
         ParameterizedTypeReference<Map<StreamKey,Stream>> typeRef = new ParameterizedTypeReference<>() {};
         result = template.convertSendAndReceiveAsType(exchanger, routing, new HashSet<>(), typeRef);
@@ -57,8 +70,8 @@ public class StreamRpcClient {
 
         log.trace("RPC REQUEST <FIND STREAMS BY NAME>: {}", names);
 
-        String exchanger = exchangeStreamRpc.getName();
-        String routing = bindingStreamRpc.getRoutingKey();
+        String exchanger = exchangeStreamRpcFindByKeys.getName();
+        String routing = bindingStreamRpcFindByKeys.getRoutingKey();
 
         ParameterizedTypeReference<Map<StreamKey,Stream>> typeRef = new ParameterizedTypeReference<>() {};
         result = template.convertSendAndReceiveAsType(exchanger, routing, names, typeRef);

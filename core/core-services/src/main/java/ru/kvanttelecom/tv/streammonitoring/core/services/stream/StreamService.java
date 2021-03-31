@@ -8,9 +8,8 @@ import ru.kvanttelecom.tv.streammonitoring.core.cache.MultiCache;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.cache.levels.StreamCacheLevelHazelcast;
 import ru.kvanttelecom.tv.streammonitoring.core.cache.levels.StreamCacheLevelDb;
-import ru.kvanttelecom.tv.streammonitoring.utils.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;

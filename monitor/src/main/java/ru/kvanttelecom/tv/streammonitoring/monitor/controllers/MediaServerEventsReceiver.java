@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.events.mediaserver.MediaServerEvent;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.MediaServerEventParser;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.MediaServiceEventAppender;
 
 import java.util.List;
 
@@ -18,8 +17,8 @@ public class MediaServerEventsReceiver {
     @Autowired
     private MediaServerEventParser parser;
 
-    @Autowired
-    MediaServiceEventAppender eventAppender;
+    //@Autowired
+    //MediaServiceEventAppender eventAppender;
 
     /**
      * receive updates from flussonic media server
@@ -32,7 +31,7 @@ public class MediaServerEventsReceiver {
         try {
             log.trace("Received: {}", json);
             List<MediaServerEvent> events = parser.parseEvent(json);
-            eventAppender.append(events);
+            //eventAppender.append(events);
         }
         catch(Exception skip) {
             log.error("MediaServerEventsReceiver error:", skip);

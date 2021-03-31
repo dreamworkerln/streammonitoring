@@ -1,4 +1,4 @@
-package ru.kvanttelecom.tv.streammonitoring.tbot.beans;
+package ru.kvanttelecom.tv.streammonitoring.tbot.entities;
 
 import lombok.*;
 import java.util.Objects;
