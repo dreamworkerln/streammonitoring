@@ -5,14 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.dreamworkerln.spring.utils.common.configurations.annotations.AutowireClassList;
 import ru.kvanttelecom.tv.streammonitoring.core.cache.MultiCache;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.cache.levels.StreamCacheLevelHazelcast;
 import ru.kvanttelecom.tv.streammonitoring.core.cache.levels.StreamCacheLevelDb;
-import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Stream service, use read/write-through hazelcast embedded cache
@@ -23,42 +20,30 @@ import java.util.stream.Collectors;
 public class StreamService {
 
     @AutowireClassList({StreamCacheLevelHazelcast.class, StreamCacheLevelDb.class})
-    private MultiCache<StreamKey,Stream> cache;
-    
-//    @PostConstruct
-//    private void postConstruct() {
-//
-//        MultiCacheBuilder<StreamKey,Stream> builder = MultiCacheBuilder.getBuilder();
-//        builder.addLevel(streamCacheLevelHazelcast)
-//            .addLevel(streamCacheLevelDb)
-//            .build(streamKey -> {
-//                log.warn("NO CacheLoader for StreamService.MultiCache specified");
-//                return null;
-//            });
-//    }
+    private MultiCache<Long,Stream> cache;
 
     /**
      * Find stream by StreamKey
      */
-    public Optional<Stream> findByKey(StreamKey key) {
-        return Optional.ofNullable(cache.get(key));
+    public Optional<Stream> findById(long id) {
+        return Optional.ofNullable(cache.get(id));
     }
+
 
     public void save(Stream stream) {
-        cache.put(stream.getStreamKey(), stream);
+        cache.put(stream.getId(), stream);
     }
 
 
-    public Map<StreamKey, Stream> findByKeys(Set<StreamKey> keys) {
-        Map<StreamKey, Stream> result = keys.stream().collect(Collectors.toMap(Function.identity(), key -> cache.get(key)));
-        // remove nulls
-        result.entrySet().removeIf(Objects::isNull);
-        return result;
+    public List<Stream> findByKeys(List<Long> keys) {
+        return cache.getAll(keys);
     }
 
-    public Map<StreamKey, Stream> findAll() {
-        return null;
+    public List<Stream> findAll() {
+        return cache.getAll();
     }
+
+    // -------------------------------------------------------------------------------
 
 
 //
@@ -337,5 +322,24 @@ public class StreamService {
 //
 //        return result;
 //    }
+
+
+
+//    @PostConstruct
+//    private void postConstruct() {
+//
+//        MultiCacheBuilder<StreamKey,Stream> builder = MultiCacheBuilder.getBuilder();
+//        builder.addLevel(streamCacheLevelHazelcast)
+//            .addLevel(streamCacheLevelDb)
+//            .build(streamKey -> {
+//                log.warn("NO CacheLoader for StreamService.MultiCache specified");
+//                return null;
+//            });
+//    }
+
+
+
+
+
 
 }

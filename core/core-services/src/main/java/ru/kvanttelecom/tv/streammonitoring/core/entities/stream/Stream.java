@@ -1,10 +1,13 @@
-package ru.kvanttelecom.tv.streammonitoring.core.entities;
+package ru.kvanttelecom.tv.streammonitoring.core.entities.stream;
 
 import lombok.*;
 import ru.dreamworkerln.spring.utils.common.annotations.Default;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamState;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Address;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Client;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Point;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
-import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 
 import javax.persistence.*;
 
@@ -17,17 +20,28 @@ import javax.persistence.*;
     indexes = {
     @Index(name = "stream_server_name_unq", columnList = "server_id, id", unique = true)
     })
-@Data
+
+// GRAPHS
+@NamedEntityGraph(name = Stream.SERVER_GRAPH,
+    attributeNodes= {@NamedAttributeNode("server")}
+)
+
 @EqualsAndHashCode(callSuper=false)
-@NoArgsConstructor
+@Data
 public class Stream extends AbstractEntity {
 
-    @Getter
+    public static final String SERVER_GRAPH = "stream.server";
+
     @Setter(AccessLevel.NONE)
     private String name;
 
     private String title;
+
     private String comment;
+
+//    @Setter(AccessLevel.PACKAGE)
+//    StreamKey streamKey;
+
 
     @ManyToOne
     @JoinColumn(name="server_id")
@@ -56,22 +70,20 @@ public class Stream extends AbstractEntity {
     @Transient
     private StreamState state;
 
-    @Getter
-    @Transient
-    private StreamKey streamKey;
+//    @Getter
+//    @Transient
+//    private StreamKey streamKey;
+
+
+    protected Stream() {}
 
     @Default
-    public Stream(String name, String title, Server server, boolean alive) {
+    public Stream(Server server, String name, String title, boolean alive) {
+        this.server = server;
         this.name = name;
         this.title = title;
-        this.server = server;
         this.alive = alive;
-
-        streamKey = new StreamKey(server.getDomainName(), name);
     }
-
-
-
 
     @Override
     public String toString() {

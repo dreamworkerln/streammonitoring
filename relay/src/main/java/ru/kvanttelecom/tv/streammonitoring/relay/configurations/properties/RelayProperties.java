@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import ru.kvanttelecom.tv.streammonitoring.core.configurations.properties.CoreCommonProperties;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -27,12 +28,15 @@ public class RelayProperties {
     @Getter
     private String address;
 
+    @Getter
+    private String protocol;
 
-
-
+    @Autowired
+    private CoreCommonProperties commonProps;
 
     @PostConstruct
     private void postConstruct() {
         address = env.getProperty("server.host") + ":" + env.getProperty("server.port");
+        protocol = commonProps.getProtocol();
     }
 }

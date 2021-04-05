@@ -12,6 +12,10 @@ public class Stream {
 
     @Getter
     @Setter(AccessLevel.NONE)
+    private Long id;
+
+    @Getter
+    @Setter(AccessLevel.NONE)
     private String name;
 
     @Setter(AccessLevel.NONE)

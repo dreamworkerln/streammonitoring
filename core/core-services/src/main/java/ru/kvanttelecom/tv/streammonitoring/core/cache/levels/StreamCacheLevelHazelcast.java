@@ -12,7 +12,7 @@ package ru.kvanttelecom.tv.streammonitoring.core.cache.levels;
 //import org.springframework.context.ApplicationContext;
 //import org.springframework.core.annotation.Order;
 //import org.springframework.stereotype.Component;
-//import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+//import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 //import ru.kvanttelecom.tv.streammonitoring.core.cache.CacheLevel;
 //import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 //
@@ -30,23 +30,27 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.kvanttelecom.tv.streammonitoring.core.cache.CacheLevel;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
-import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Component
 @Order(0)
 @Slf4j
-public class StreamCacheLevelHazelcast implements CacheLevel<StreamKey, Stream> {
+public class StreamCacheLevelHazelcast implements CacheLevel<Long, Stream> {
 
 
     @Autowired
     @Qualifier("myHazelcast")
     private HazelcastInstance cache;
 
-    private IMap<StreamKey, Stream> map;
+    private IMap<Long, Stream> map;
 
 
     @PostConstruct
@@ -88,17 +92,36 @@ public class StreamCacheLevelHazelcast implements CacheLevel<StreamKey, Stream> 
 
 
     @Override
-    public Stream get(StreamKey key) {
+    public Stream get(Long key) {
         return map.get(key);
     }
 
     @Override
-    public Stream put(StreamKey key, Stream value) {
+    public Stream put(Long key, Stream value) {
+
+        if(key == null) {
+            throw new IllegalArgumentException("key == null");
+        }
+        if(value == null) {
+            throw new IllegalArgumentException("value == null");
+        }
+
         return map.put(key, value);
     }
 
     @Override
-    public boolean containsKey(StreamKey key) {
+    public boolean containsKey(Long key) {
         return map.containsKey(key);
+    }
+
+
+    @Override
+    public List<Stream> getAll(Set<Long> key) {
+        return new ArrayList<>(map.getAll(key).values());
+    }
+
+    @Override
+    public List<Stream> getAll() {
+        return new ArrayList<>(map.values());
     }
 }

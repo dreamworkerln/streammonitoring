@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 
 import javax.persistence.*;
 import java.util.ArrayList;

@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ru.kvanttelecom.tv.streammonitoring.core.configurations.properties.CoreCommonProperties;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -33,6 +34,16 @@ public class MonitorProperties {
     @Autowired
     VideoServers servers;
 
+    @Getter
+    @Autowired
+    Watcher watcher;
+
+    @Getter
+    private String protocol;
+
+    @Autowired
+    private CoreCommonProperties commonProps;
+
     @PostConstruct
     private void postConstruct() {
 
@@ -40,6 +51,8 @@ public class MonitorProperties {
         if(refreshIntervalSec <=0) {
             throw new IllegalArgumentException("refresh.interval.sec <=0");
         }
+
+        protocol = commonProps.getProtocol();
     }
 
     @Component
@@ -61,6 +74,32 @@ public class MonitorProperties {
         @Value("${media.server.password}")
         @Getter
         private String password;
+
+    }
+
+    @Component
+    public static class Watcher {
+
+        /**
+         * Address of watcher (host:port)
+         */
+        @Getter(AccessLevel.PUBLIC)
+        @Value("${watcher.address}")
+        private String address;
+
+
+        @Value("${watcher.username}")
+        @Getter
+        private String username;
+
+
+        @Value("${watcher.password}")
+        @Getter
+        private String password;
+
+        @Value("${watcher.token}")
+        @Getter
+        private String token;
 
     }
 }

@@ -12,6 +12,7 @@ import ru.kvanttelecom.tv.streammonitoring.core.services.stream.StreamService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.events.mediaserver.MediaServerEvent;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.StreamEventSender;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.WatcherGrabber;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -25,6 +26,9 @@ import java.util.*;
 public class MonitoringScheduler {
 
     private boolean checkStreamUniq;
+
+    @Autowired
+    private WatcherGrabber watcherGrabber;
 
     @Autowired
     private StreamService streamService;
@@ -47,11 +51,11 @@ public class MonitoringScheduler {
 
 
     /**
-     * Monitoring stream updates on flussonic media servers
+     * Update cameras info from Watcher
      */
     //
     @Scheduled(fixedDelayString = "#{monitorProperties.getRefreshIntervalSec() * 1000}",
-        initialDelayString = "#{monitorProperties.getRefreshIntervalSec()/2 * 1000}")
+        initialDelayString = "#{monitorProperties.getRefreshIntervalSec()/2000 * 1000}")
     private void monitor() {
 
         try {
@@ -59,17 +63,19 @@ public class MonitoringScheduler {
             // Events from all servers
             List<StreamEventDto> events = new ArrayList<>();
 
-            Map<String,Server> servers = serverService.findAll();
+            List<Server> servers = serverService.findAll();
+
+            watcherGrabber.getStreamList();
 
             // StreamUpdate name index - checking stream uniqueness (on all servers)
-            Map<String, MediaServerEvent> nameIndex = new HashMap<>();
+            // Map<String, MediaServerEvent> nameIndex = new HashMap<>();
 
             // обходим по всем серверам
-            for (Map.Entry<String, Server> server : servers.entrySet()) {
+            for (Server server : servers) {
 
                 String serverName = null;
                 try {
-                    serverName = server.getKey();
+                    serverName = server.getDomainName();
 
                     //log.trace("Scanning server: {}", serverName);
 
@@ -77,7 +83,7 @@ public class MonitoringScheduler {
                     List<MediaServerEvent> update = new ArrayList<>(); // apiClient.getStreamsUpdate(serverName);
 
 
-                    checkDuplicate(update, nameIndex);
+                    //checkDuplicate(update, nameIndex);
 
 /*                    // FixMe - удалить try catch
                     try {

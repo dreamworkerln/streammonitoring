@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.AmqpId;
-import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.tbot.entities.Stream;
 
 import javax.annotation.PostConstruct;
@@ -24,15 +23,15 @@ public class StreamRpcClient {
         //log.trace(bindingStreamRpcFindAll.toString());
     }
 
-    public Map<StreamKey,Stream> findAll() {
+    public List<Stream> findAll() {
 
-        Map<StreamKey,Stream> result;
+        List<Stream> result;
         log.trace("RPC REQUEST <FIND STREAMS ALL>");
 
         String exchanger = AmqpId.exchanger.stream.rpc.findAll;
         String routing   = AmqpId.binding.stream.rpc.findAll;
 
-        ParameterizedTypeReference<Map<StreamKey,Stream>> typeRef = new ParameterizedTypeReference<>() {};
+        ParameterizedTypeReference<List<Stream>> typeRef = new ParameterizedTypeReference<>() {};
         result = template.convertSendAndReceiveAsType(exchanger, routing, new HashSet<>(), typeRef);
         log.trace("RPC RESPONSE: {}", result);
 
@@ -44,21 +43,21 @@ public class StreamRpcClient {
 
 
 
-    public Map<StreamKey,Stream> findByKeys(Set<StreamKey> names) {
+    public List<Stream> findByKeys(List<Long> ids) {
 
-        Map<StreamKey,Stream> result;
+        List<Stream> result;
 
-        if(names.size() == 0) {
-            return new HashMap<>();
+        if(ids.size() == 0) {
+            return new ArrayList<>();
         }
 
-        log.trace("RPC REQUEST <FIND STREAMS BY NAME>: {}", names);
+        log.trace("RPC REQUEST <FIND STREAMS BY NAME>: {}", ids);
 
         String exchanger = AmqpId.exchanger.stream.rpc.findByKeys;
         String routing = AmqpId.binding.stream.rpc.findByKeys;
 
-        ParameterizedTypeReference<Map<StreamKey,Stream>> typeRef = new ParameterizedTypeReference<>() {};
-        result = template.convertSendAndReceiveAsType(exchanger, routing, names, typeRef);
+        ParameterizedTypeReference<List<Stream>> typeRef = new ParameterizedTypeReference<>() {};
+        result = template.convertSendAndReceiveAsType(exchanger, routing, ids, typeRef);
         log.trace("RPC RESPONSE: {}", result);
 
         if(result == null) {

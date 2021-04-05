@@ -10,16 +10,25 @@ import java.util.Objects;
 
 public class StreamKey implements Serializable {
 
+//    @Getter
+//    private String serverName;
+//    @Getter
+//    private String streamName;
+
     @Getter
-    private String serverName;
+    private long serverId;
     @Getter
-    private String streamName;
+    private long streamId;
+
+    public  static StreamKey from(long serverId, long streamId) {
+        return new StreamKey(serverId, streamId);
+    }
 
 
     @Default
-    public StreamKey(String serverName, String streamName) {
-        this.serverName = serverName;
-        this.streamName = streamName;
+    public StreamKey(long serverId, long streamId) {
+        this.serverId = serverId;
+        this.streamId = streamId;
     }
 
     @Override
@@ -27,20 +36,20 @@ public class StreamKey implements Serializable {
         if (this == o) return true;
         if (!(o instanceof StreamKey)) return false;
         StreamKey streamKey = (StreamKey) o;
-        return serverName.equals(streamKey.serverName) &&
-            streamName.equals(streamKey.streamName);
+        return serverId == streamKey.serverId &&
+            streamId == streamKey.streamId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(serverName, streamName);
+        return Objects.hash(serverId, streamId);
     }
 
     @Override
     public String toString() {
         return "StreamKey{" +
-            "serverName='" + serverName + '\'' +
-            ", streamName='" + streamName + '\'' +
+            "serverId=" + serverId +
+            ", streamId=" + streamId +
             '}';
     }
 }

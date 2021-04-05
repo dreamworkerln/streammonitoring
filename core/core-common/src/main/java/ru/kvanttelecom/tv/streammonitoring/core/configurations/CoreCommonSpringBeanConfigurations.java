@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestTemplate;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
+import ru.dreamworkerln.spring.utils.common.rest.RestClientBuilder;
 
 import java.time.Duration;
 
@@ -35,11 +36,15 @@ public class CoreCommonSpringBeanConfigurations {
                 .build();
     }
 
+
+
     @Primary
     @Bean
     public RestClient restClient(RestTemplate restTemplate) {
-        return new RestClient(restTemplate);
+        RestClientBuilder builder = new RestClientBuilder();
+        return builder.restTemplate(restTemplate).build();
     }
+    
 
     @Primary
     @Bean

@@ -5,10 +5,10 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.AmqpId;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.services.stream.StreamService;
-import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,12 +20,12 @@ public class StreamRpcServer {
     StreamService streamService;
 
     /**
-     * find streams by name
+     * find streams by ids
      */
     @RabbitListener(queues = AmqpId.queue.stream.rpc.findByKeys)
-    private Map<StreamKey, Stream> findByKeys(Set<StreamKey> keys) {
+    private List<Stream> findByKeys(List<Long> keys) {
 
-        Map<StreamKey,Stream> result;
+        List<Stream> result;
 
         try {
             log.trace("RPC REQUEST <FIND STREAMS BY KEY> PARAMS: {}", keys);
@@ -41,9 +41,9 @@ public class StreamRpcServer {
 
 
     @RabbitListener(queues = AmqpId.queue.stream.rpc.findAll)
-    private Map<StreamKey,Stream> findAll() {
+    private List<Stream> findAll() {
 
-        Map<StreamKey,Stream> result;
+        List<Stream> result;
 
         try {
             log.trace("RPC REQUEST <FIND STREAMS ALL>");

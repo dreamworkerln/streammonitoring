@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.dreamworkerln.spring.utils.common.threadpool.BlockingJobPool;
 import ru.dreamworkerln.spring.utils.common.threadpool.JobResult;
-import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.tbot.entities.Stream;
 import ru.kvanttelecom.tv.streammonitoring.tbot.beans.StreamMap;
 import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.TBotProperties;
@@ -161,7 +160,7 @@ public class Telebot {
         List<String> linesFlap = new ArrayList<>();
 
 
-        for (Map.Entry<StreamKey, Stream> entry : streams.entrySet()) {
+        for (Map.Entry<Long, Stream> entry : streams.entrySet()) {
 
             Stream stream = entry.getValue();
 

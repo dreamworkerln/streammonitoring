@@ -22,9 +22,6 @@ public class EventSender {
     private RelayProperties props;
 
     @Autowired
-    CoreCommonProperties commonProps;
-
-    @Autowired
     private RestClient restClient;
 
     @Autowired
@@ -39,7 +36,7 @@ public class EventSender {
             jobPool.add(null,
                 unchecked(unused -> {
                 //TimeUnit.SECONDS.sleep(10);
-                    restClient.post(commonProps.getProtocol() + receiver, json);
+                    restClient.post(props.getProtocol() + receiver, json);
                     return new JobResult<>();
                 }));
         }

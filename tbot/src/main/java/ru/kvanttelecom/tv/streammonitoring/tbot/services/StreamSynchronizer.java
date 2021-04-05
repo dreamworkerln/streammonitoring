@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp.StreamRpcClient;
-import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.tbot.entities.Stream;
 import ru.kvanttelecom.tv.streammonitoring.tbot.beans.StreamMap;
 import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.TBotProperties;
@@ -14,6 +13,7 @@ import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamEventDto;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -44,12 +44,13 @@ public class StreamSynchronizer {
     public void syncAll() {
         log.trace("StreamSynchronizer: Reloading all streams");
 
-        Map<StreamKey, Stream> updates = streamRpcClient.findAll();
+        Map<Long, Stream> updates = streamRpcClient.findAll().stream()
+            .collect(Collectors.toMap(Stream::getId, Function.identity()));
 
         // prevent client to see empty streams Map
         // ---------------------------------------------------------------
         // 1. Remove from streams that not exists in update
-        streams.removeIf(entry -> !updates.containsKey(entry.getKey()));
+        streams.removeIf(s -> !updates.containsKey(s.getKey()));
         // 2. Put all from update to streams - replace existing
         streams.putAll(updates);
         // ---------------------------------------------------------------
@@ -66,10 +67,10 @@ public class StreamSynchronizer {
         log.trace("StreamSynchronizer: syncFromEvent");
 
         // get StreamKey from event update list
-        Set<StreamKey> streamKeys = update.stream().map(StreamEventDto::getStreamKey).collect(Collectors.toSet());
+        //Set<StreamKey> streamKeys = update.stream().map(StreamEventDto::getStreamKey).collect(Collectors.toSet());
 
         // go to monitor and get full info about updated streams
-        Map<StreamKey, Stream> alteredStreams = streamRpcClient.findByKeys(streamKeys);
+        //Map<StreamKey, Stream> alteredStreams = streamRpcClient.findByKeys(streamKeys);
 
         // updating all local streams (if alteredStreams have any)
         streams.putAll(null); // alteredStreams
@@ -102,18 +103,19 @@ public class StreamSynchronizer {
     // =============================================================================================
 
 
-    private void sendToTelegram(List<StreamEventDto> events, Map<StreamKey, Stream> alteredStreams) {
+    private void sendToTelegram(List<StreamEventDto> events, List<Stream> alteredStreams) {
 
         List<String> lines = new ArrayList<>();
         for (StreamEventDto event : events) {
 
-            StreamKey key = null;//event.getName();
+            Long id = event.getStreamId();
 
-            Stream stream = alteredStreams.get(key);
+            Stream stream = null;
+            //Stream stream = alteredStreams.get(0);
 
             // If stream has been deleted in monitor, borrow stream from local streams
             if(stream == null) {
-                stream = streams.get(key);
+                stream = streams.get(id);
             }
 
             Assert.notNull(stream, "Stream == null");

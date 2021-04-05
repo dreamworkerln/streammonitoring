@@ -22,7 +22,7 @@ public class Address extends AbstractEntity {
     @Getter
     private String postAddress;
 
-    public Address() {}
+    protected Address() {}
     public Address(String postAddress, Point coordinates) {
         this.postAddress = postAddress;
         this.coordinates = coordinates;

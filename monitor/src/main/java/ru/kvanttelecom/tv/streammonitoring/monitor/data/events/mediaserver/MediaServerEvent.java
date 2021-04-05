@@ -1,7 +1,6 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.data.events.mediaserver;
 
 import lombok.Getter;
-import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.enums.MediaServerEventType;
 
 
@@ -29,8 +28,8 @@ public class MediaServerEvent {
     @Getter
     private final String reason;
 
-    @Getter
-    private StreamKey streamKey;
+//    @Getter
+//    private StreamKey streamKey;
 
     public MediaServerEvent(MediaServerEventType eventType, String serverName, String streamName, Instant time, String reason) {
         this.eventType = eventType;
@@ -39,7 +38,7 @@ public class MediaServerEvent {
         this.time = time;
         this.reason = reason;
 
-        this.streamKey = new StreamKey(serverName, streamName);
+        //this.streamKey = new StreamKey(serverName, streamName);
     }
 
     @Override

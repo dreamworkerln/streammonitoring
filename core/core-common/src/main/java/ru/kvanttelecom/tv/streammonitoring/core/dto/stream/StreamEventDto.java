@@ -12,14 +12,9 @@ import java.util.Set;
 public class StreamEventDto {
 
     /**
-     * Server id
+     * Stream id
      */
-    long serverId;
-
-    /**
-     * Stream name
-     */
-    private StreamKey streamKey;
+    long streamId;
 
     /**
      * Event type
@@ -28,8 +23,8 @@ public class StreamEventDto {
 
     public StreamEventDto() {}
 
-    public StreamEventDto(StreamKey streamKey, Set<StreamEventType> eventSet) {
-        this.streamKey = streamKey;
+    public StreamEventDto(long streamId, Set<StreamEventType> eventSet) {
+        this.streamId = streamId;
         this.eventSet = eventSet;
     }
 
