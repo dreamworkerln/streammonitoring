@@ -11,6 +11,7 @@ ncat -lkv localhost 7070 -c 'tee /dev/stdout'
 #### rabbitmq watch messages
 ```
 watch -n1 sudo rabbitmqadmin list queues name messages messages_unacknowledged
+sudo rabbitmqadmin delete queue name=test.rpc
 ```
 
 #### rabbitmq watch messages web admin gui

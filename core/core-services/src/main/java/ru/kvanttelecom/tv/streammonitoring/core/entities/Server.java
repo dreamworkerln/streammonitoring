@@ -21,7 +21,10 @@ import java.util.List;
 public class Server extends AbstractEntity {
 
     @Getter
-    private String name;
+    private String hostname; // linux hostname
+
+    @Getter
+    private String domainName; // full, without most right dot
 
     @Getter
     private String url;
@@ -30,8 +33,9 @@ public class Server extends AbstractEntity {
     @OrderBy("id ASC")
     private final List<Stream> streamList = new ArrayList<>();
 
-    public Server(String name, String url) {
-        this.name = name;
+    public Server(String hostname, String domainName, String url) {
+        this.hostname = hostname;
+        this.domainName = domainName;
         this.url = url;
     }
 }

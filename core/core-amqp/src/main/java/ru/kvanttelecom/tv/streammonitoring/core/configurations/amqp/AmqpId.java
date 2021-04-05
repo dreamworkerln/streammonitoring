@@ -12,13 +12,13 @@ public class AmqpId {
 
             // Events
             public static class events {
-                public static final String update = "queue.stream.events.update";
+                public static final String update = "stream.events.update";
             }
 
             // RPC
             public static class rpc {
-                public static final String findAll =    "queue.stream.rpc.findAll";
-                public static final String findByKeys = "queue.stream.rpc.findByKeys";
+                public static final String findAll =    "stream.rpc.findAll";
+                public static final String findByKeys = "stream.rpc.findByKeys";
             }
         }
     }
@@ -29,14 +29,14 @@ public class AmqpId {
 
             // Events
             public static class events {
-                public static final String update = "exchanger.stream.events.update";
+                public static final String update = "stream.events.update";
             }
 
 
             // RPC
             public static class rpc {
-                public static final String findAll =    "exchanger.stream.rpc.findAll";
-                public static final String findByKeys = "exchanger.stream.rpc.findByKeys";
+                public static final String findAll =    "stream.rpc.findAll";
+                public static final String findByKeys = "stream.rpc.findByKeys";
             }
         }
     }
@@ -49,13 +49,13 @@ public class AmqpId {
 
             // events
             public static class events {
-                public static final String update = "binding.stream.events.update";
+                public static final String update = "stream.events.update";
             }
 
             // RPC
             public static class rpc {
-                public static final String findAll =    "binding.stream.rpc.findAll";
-                public static final String findByKeys = "binding.stream.rpc.findByKeys";
+                public static final String findAll =    "stream.rpc.findAll";
+                public static final String findByKeys = "stream.rpc.findByKeys";
             }
         }
     }

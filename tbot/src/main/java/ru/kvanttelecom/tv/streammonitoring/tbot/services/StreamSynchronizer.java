@@ -29,7 +29,7 @@ public class StreamSynchronizer {
     @Autowired
     private StreamMap streams;
 
-    //@Autowired
+    @Autowired
     private StreamRpcClient streamRpcClient;
 
     @Autowired

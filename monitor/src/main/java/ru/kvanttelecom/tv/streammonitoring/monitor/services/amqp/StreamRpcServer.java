@@ -21,11 +21,7 @@ public class StreamRpcServer {
 
     /**
      * find streams by name
-     * @param names name of streams, name == null - find all streams
-     * @return List<Stream>
      */
-
-
     @RabbitListener(queues = AmqpId.queue.stream.rpc.findByKeys)
     private Map<StreamKey, Stream> findByKeys(Set<StreamKey> keys) {
 

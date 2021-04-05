@@ -42,7 +42,7 @@ public class Stream extends AbstractEntity {
     private Client client;
 
     @Embedded
-    private Point point;
+    private Point coordinates;
     
     // Is stream online/offline
     private boolean alive;
@@ -67,7 +67,7 @@ public class Stream extends AbstractEntity {
         this.server = server;
         this.alive = alive;
 
-        streamKey = new StreamKey(server.getName(), name);
+        streamKey = new StreamKey(server.getDomainName(), name);
     }
 
 

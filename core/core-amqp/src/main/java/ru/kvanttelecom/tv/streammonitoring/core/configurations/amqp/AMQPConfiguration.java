@@ -72,62 +72,60 @@ public class AMQPConfiguration {
 
     }
 
+    // STREAM ----------------------------------------------------------------------
 
-    // Stream Update Events ---------------------------------------------------------
+    // Event Update ------------------------
+//
+//    @Bean(AmqpId.queue.stream.events.update)
+//    public Queue queueStreamEvent() {
+//        return queueStreamEventUpdate;
+//    }
+//
+//    @Bean(AmqpId.exchanger.stream.events.update)
+//    public DirectExchange exchangeStreamRpcEvent() {
+//        return exchangeStreamEventUpdate;
+//    }
+//
+//    @Bean(AmqpId.binding.stream.events.update)
+//    public Binding bindingStreamEvent() {
+//        return bindingStreamEventUpdate;
+//    }
+//
+//
+//    // RPC ---------------------------------
+//
+//    // FindAll
+//    @Bean(AmqpId.queue.stream.rpc.findAll)
+//    public Queue queueStreamRpcFindAll() {
+//        return queueStreamRpcFindAll;
+//    }
+//
+//    @Bean(AmqpId.exchanger.stream.rpc.findAll)
+//    public DirectExchange exchangeStreamRpcFindAll() {
+//        return exchangeStreamRpcFindAll;
+//    }
+//
+//    @Bean(AmqpId.binding.stream.rpc.findAll)
+//    public Binding bindingStreamRpcFindAll() {
+//        return bindingStreamRpcFindAll;
+//    }
+//
+//
+//    // FindByKeys
+//    @Bean(AmqpId.queue.stream.rpc.findByKeys)
+//    public Queue queueStreamRpcFindByKeys() {
+//        return queueStreamRpcFindByKeys;
+//    }
+//
+//    @Bean(AmqpId.exchanger.stream.rpc.findByKeys)
+//    public DirectExchange exchangeStreamRpcFindByKeys() {
+//        return exchangeStreamRpcFindByKeys;
+//    }
+//
+//    @Bean(AmqpId.binding.stream.rpc.findByKeys)
+//    public Binding bindingStreamRpcFindByKeys() {
+//        return bindingStreamRpcFindByKeys;
+//    }
 
-    @Bean(AmqpId.queue.stream.events.update)
-    public Queue queueStreamEvent() {
-        return queueStreamEventUpdate;
-    }
-
-
-    @Bean(AmqpId.exchanger.stream.events.update)
-    public DirectExchange exchangeStreamRpcEvent() {
-        return exchangeStreamEventUpdate;
-    }
-
-    @Bean(AmqpId.binding.stream.events.update)
-    public Binding bindingStreamEvent() {
-        return bindingStreamEventUpdate;
-    }
-
-
-    // Stream RPC ---------------------------------------------------------
-
-
-
-    // FindAll
-    @Bean(AmqpId.queue.stream.rpc.findAll)
-    public Queue queueStreamRpcFindAll() {
-        return queueStreamRpcFindAll;
-    }
-
-    @Bean(AmqpId.exchanger.stream.rpc.findAll)
-    public DirectExchange exchangeStreamRpcFindAll() {
-        return exchangeStreamRpcFindAll;
-    }
-
-    @Bean(AmqpId.binding.stream.rpc.findAll)
-    public Binding bindingStreamRpcFindAll() {
-        return bindingStreamRpcFindAll;
-    }
-
-    // FindByKeys   --------------------------------------
-
-
-    @Bean(AmqpId.queue.stream.rpc.findByKeys)
-    public Queue queueStreamRpcFindByKeys() {
-        return queueStreamRpcFindByKeys;
-    }
-
-    @Bean(AmqpId.exchanger.stream.rpc.findByKeys)
-    public DirectExchange exchangeStreamRpcFindByKeys() {
-        return exchangeStreamRpcFindByKeys;
-    }
-
-    @Bean(AmqpId.binding.stream.rpc.findAll)
-    public Binding bindingStreamRpcFindByKeys() {
-        return bindingStreamRpcFindByKeys;
-    }
-    // ---------------------------------------------------------
+    // -------------------------------------------------------------------------------------
 }

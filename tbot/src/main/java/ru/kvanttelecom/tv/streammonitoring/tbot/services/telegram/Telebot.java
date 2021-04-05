@@ -4,7 +4,6 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.Keyboard;
-import com.pengrad.telegrambot.model.request.KeyboardButton;
 import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
@@ -66,14 +65,22 @@ public class Telebot {
     @Autowired
     private StreamMap streams;
 
+    private static final  String HELP_CONTENT ="\n" +
+        "/streams - list of not working/flapping streams" +
+        "/help - this help" +
+        "\n" + "/echo [text] - echo [text]" +
+        "\n" + "/ping - echo-reply";
+
     @PostConstruct
     private void postConstruct() {
         log.info("Staring telegram bot");
 
+
+        handlers.put("/start",   this::start);
+        handlers.put("/help",    this::help);
+        handlers.put("/echo",    this::echo);
+        handlers.put("/ping",    this::ping);
         handlers.put("/streams", this::streams);
-        handlers.put("/help", this::help);
-        handlers.put("/echo", this::echo);
-        handlers.put("/ping", this::ping);
 
 
 
@@ -115,88 +122,22 @@ public class Telebot {
         });
     }
 
-    /**
-     * Send message to telegram
-     * @param chatId whom
-     * @param message text
-     * @return SendResponse
-     */
-    @SneakyThrows
-    public SendResponse sendMessage(Long chatId, String message) {
+    // -------------------------------------------------------------------------------
 
-        if(isBlank(message)) {
-            return null;
-        }
+    private void start(Long chatId, String text) {
 
-        SendResponse result = null;
+        // permanent keyboard
+        Keyboard replyKeyboardMarkup = new ReplyKeyboardMarkup("/streams")
+            .oneTimeKeyboard(false)
+            .resizeKeyboard(true)
+            .selective(true);
 
-        // разбивка по страницам 4k
-        for (final String chunk : stringSplitter(message)) {
-
-            SendMessage msg = new SendMessage(chatId, chunk);
-
-            Throwable exception;
-            do {
-
-                // отправка
-                JobResult<SendMessage,SendResponse> jobResult = jobPool.execTimeout(msg,
-                    a -> new JobResult<>(msg, bot.execute(msg)), telegramSendTimeout.get());
-
-                exception = jobResult.getException();
-                result = jobResult.getResult();
-                //log.trace("Telebot send result: {}", result);;
-
-                // need to wait on error
-                if(exception != null) {
-
-                    log.trace("Telebot send exception:", exception);
-
-                    // дополнительно ждем
-                    Thread.sleep(telegramSendTimeout.get().toMillis());
-                    // increase timeout
-                    calculateNewDuration(+1);
-                }
-                else {
-                    // decrease timeout
-                    calculateNewDuration(-1);
-                }
-            }
-            while (exception != null);
-        }
-
-        return result;
-    }
-
-    private void calculateNewDuration(int direction) {
-
-        telegramSendTimeout.getAndUpdate(d -> {
-
-            Duration result = d;
-            if (direction == 1) {
-                result = d.multipliedBy(2);
-            }
-            if (direction == -1) {
-                result = d.dividedBy(2);
-            }
-
-            if (result.toSeconds() > TELEGRAM_SEND_TIMEOUT_MAX.toSeconds() ||
-                result.toSeconds() < TELEGRAM_SEND_TIMEOUT_MIN.toSeconds()) {
-                result = d;
-            }
-            return result;
-        });
+        sendMessage(chatId, HELP_CONTENT, replyKeyboardMarkup);
     }
 
     private void help(Long chatId, String text) {
-
-        String message ="\n" +
-            "/streams - list of not working/flapping streams" +
-            "/help - this help" +
-            "\n" + "/echo [text] - echo [text]" +
-            "\n" + "/ping - echo-reply";
-            //"\n" + "Streams info: " + PROTOCOL + props.getAddress() + "/streams" + "\n";
-
-        SendResponse response = sendMessage(chatId, message);
+        SendResponse response = sendMessage(chatId, HELP_CONTENT);
+        //"\n" + "Streams info: " + PROTOCOL + props.getAddress() + "/streams" + "\n";
     }
 
     private void echo(Long chatId, String text) {
@@ -263,18 +204,7 @@ public class Telebot {
             sb.append("ALL ONLINE");
         }
 
-
-
-        Keyboard keyboard = new ReplyKeyboardMarkup(
-            new KeyboardButton("text"),
-            new KeyboardButton("contact").requestContact(true),
-            new KeyboardButton("location").requestLocation(true));
-
-
-        SendMessage message = new SendMessage(56,"786").replyMarkup(keyboard);
-        bot.execute(message);
-
-        //SendResponse response = sendMessage(chatId, sb.toString());
+        SendResponse response = sendMessage(chatId, sb.toString());
     }
 
 
@@ -298,6 +228,93 @@ public class Telebot {
         }
 
         return result;
+    }
+
+
+
+    @SneakyThrows
+    public SendResponse sendMessage(Long chatId, String message) {
+        return sendMessage(chatId, message, null);
+    }
+
+    /**
+     * Send message to telegram
+     * @param chatId whom
+     * @param message text
+     * @return SendResponse
+     */
+    @SneakyThrows
+    public SendResponse sendMessage(Long chatId, String message, Keyboard keyboard) {
+
+        if(isBlank(message)) {
+            return null;
+        }
+
+        SendResponse result = null;
+
+        // разбивка по страницам 4k
+        List<String> lines = stringSplitter(message);
+        for (int i = 0; i < lines.size(); i++) {
+
+            String chunk = lines.get(i);
+
+            SendMessage msg = new SendMessage(chatId, chunk);
+
+            // add keyboard to last message
+            if(keyboard != null && i == lines.size() - 1) {
+                msg.replyMarkup(keyboard);
+            }
+
+            Throwable exception;
+            do {
+
+                // отправка
+                JobResult<SendMessage,SendResponse> jobResult = jobPool.execTimeout(msg,
+                    a -> new JobResult<>(msg, bot.execute(msg)), telegramSendTimeout.get());
+
+                exception = jobResult.getException();
+                result = jobResult.getResult();
+                //log.trace("Telebot send result: {}", result);;
+
+                // need to wait on error
+                if(exception != null) {
+
+                    log.trace("Telebot send exception:", exception);
+
+                    // дополнительно ждем
+                    Thread.sleep(telegramSendTimeout.get().toMillis());
+                    // increase timeout
+                    calculateNewDuration(+1);
+                }
+                else {
+                    // decrease timeout
+                    calculateNewDuration(-1);
+                }
+            }
+            while (exception != null);
+        }
+
+        return result;
+    }
+
+    private void calculateNewDuration(int direction) {
+
+        telegramSendTimeout.getAndUpdate(d -> {
+
+            Duration result = d;
+            if (direction == 1) {
+                result = d.multipliedBy(2);
+            }
+            if (direction == -1) {
+                result = d.dividedBy(2);
+            }
+
+            if (result.toSeconds() > TELEGRAM_SEND_TIMEOUT_MAX.toSeconds() ||
+                result.toSeconds() < TELEGRAM_SEND_TIMEOUT_MIN.toSeconds()) {
+                result = d;
+            }
+            return result;
+        });
     }
 
 

@@ -16,7 +16,7 @@ public class BotScheduler {
      * Синхронизирует локальный список стримов с monitor (целиком)
      */
     //@Scheduled(fixedDelayString = "#{applicationProperties.getRefreshIntervalSec() * 1000}", initialDelay = 10 * 1000)
-    //@Scheduled(fixedDelay = 5 * 1000, initialDelay = 5 * 1000)
+    @Scheduled(fixedDelay = 5 * 1000, initialDelay = 5 * 1000)
     public void syncAllStreams() {
 
         try {
