@@ -28,7 +28,7 @@ public class Server extends AbstractEntity {
 
     @OneToMany(mappedBy= "server", orphanRemoval = true, cascade = CascadeType.ALL)
     @OrderBy("id ASC")
-    private final List<Stream> streamList = new ArrayList<>();
+    private List<Stream> streamList = new ArrayList<>();
 
     protected Server() {}
 

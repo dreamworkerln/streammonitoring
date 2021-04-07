@@ -15,12 +15,8 @@ import javax.annotation.PostConstruct;
 @Configuration
 @Slf4j
 public class CoreDbSpringBeanConfigurations {
-    @PostConstruct
-    private void postConstruct() {
-        log.info("CoreDbSpringBeanConfigurations postConstruct()");
-    }
 
-    @Bean("myHazelcast")
+    @Bean("ru.kvanttelecom.tv.streammonitoring")
     HazelcastInstance getHazelcastInstance() {
         return Hazelcast.newHazelcastInstance();
     }

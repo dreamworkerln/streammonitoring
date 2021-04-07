@@ -18,6 +18,7 @@ import javax.persistence.*;
 @Table(
     name = "stream",
     indexes = {
+    @Index(name = "stream_name_index", columnList = "server_id, id"),
     @Index(name = "stream_server_name_unq", columnList = "server_id, id", unique = true)
     })
 
@@ -55,8 +56,8 @@ public class Stream extends AbstractEntity {
     @JoinColumn(name="client_id")
     private Client client;
 
-    @Embedded
-    private Point coordinates;
+    //@Embedded
+    //private Point coordinates;
     
     // Is stream online/offline
     private boolean alive;

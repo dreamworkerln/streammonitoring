@@ -1,12 +1,11 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.services;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamEventDto;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.services.server.ServerService;
 import ru.kvanttelecom.tv.streammonitoring.core.services.stream.StreamService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
@@ -16,6 +15,10 @@ import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.WatcherGra
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 
 /**
@@ -55,17 +58,46 @@ public class MonitoringScheduler {
      */
     //
     @Scheduled(fixedDelayString = "#{monitorProperties.getRefreshIntervalSec() * 1000}",
-        initialDelayString = "#{monitorProperties.getRefreshIntervalSec()/2000 * 1000}")
-    private void monitor() {
+        initialDelayString = "#{monitorProperties.getRefreshIntervalSec() * 1000*36000}")
+    private void updateStreams() {
 
         try {
 
-            // Events from all servers
-            List<StreamEventDto> events = new ArrayList<>();
+            log.trace("MONITOR - UPDATE STREAMS ==============================================");
 
+//            // Events from all servers
+//            List<StreamEventDto> events = new ArrayList<>();
+
+
+            // 1. Load Streams from watcher ----------------------------------------
+
+            // Get all streams in system
+            Map<String,Stream> streams = streamService.findAll().stream()
+                .collect(Collectors.toMap(Stream::getName, Function.identity()));
+
+            // Get servers
             List<Server> servers = serverService.findAll();
 
-            watcherGrabber.getStreamList();
+            // Get new streams
+            List<Stream> watcherStreams = watcherGrabber.getStreamList();
+
+            // Checking for duplicate names(strict)/titles/addresses
+            checkStreamNameDuplicates(watcherStreams);
+
+            List<Stream> toDelete = new ArrayList<>();
+            List<Stream> toUpdate = new ArrayList<>();
+
+            for (Stream ws : watcherStreams) {
+            }
+
+
+
+
+
+
+
+
+
 
             // StreamUpdate name index - checking stream uniqueness (on all servers)
             // Map<String, MediaServerEvent> nameIndex = new HashMap<>();
@@ -107,18 +139,19 @@ public class MonitoringScheduler {
             }
 
             // sending to bot ---------------------------------------
-            if (events.size() > 0) {
-                // sending events to message aggregator(bot)
-                try {
-                    streamEventSender.send(events);
-                }
-                // skip on error
-                catch (Exception skip) {
-                    log.error("Sending to aggregator(bot) error:", skip);
-                }
-            } else {
-                //log.trace("Nothing to send");
-            }
+//            if (events.size() > 0) {
+//                // sending events to message aggregator(bot)
+//                try {
+//                    streamEventSender.send(events);
+//                }
+//                // skip on error
+//                catch (Exception skip) {
+//                    log.error("Sending to aggregator(bot) error:", skip);
+//                }
+//            }
+//            else {
+//                //log.trace("Nothing to send");
+//            }
 
         }
         // Unexpected error - shutdown program
@@ -128,13 +161,45 @@ public class MonitoringScheduler {
         }
     }
 
-
     /**
+     * Validating streams for duplicate name/title
+     */
+    private void checkStreamNameDuplicates(List<Stream> streams) {
+
+        List<EntityIndex<String,Stream>> checkers = new ArrayList<>();
+
+        checkers.add(new EntityIndex<>(
+            Stream::getName,
+            (s1, s2) -> {
+                throw new IllegalArgumentException(streamDuplicateFormatter("DUPLICATE STREAM NAME", s1,s2));
+            }));
+
+        checkers.add(new EntityIndex<>(
+            Stream::getTitle,
+            (s1, s2) -> {
+                log.info("POSSIBLY DUPLICATE CAMERA: " + streamDuplicateFormatter("DUPLICATE STREAM TITLE", s1,s2));
+            }));
+
+//        checkers.add(new EntityIndex<>(
+//            s -> s.getAddress().getPostAddress(),
+//            (s1, s2) -> {
+//                log.info("POSSIBLY DUPLICATE CAMERA: " + streamDuplicateFormatter("DUPLICATE STREAM ADDRESS", s1,s2));
+//            }));
+
+        for (Stream stream : streams) {
+
+            for (EntityIndex<String, Stream> checker : checkers) {
+                checker.check(stream);
+            }
+        }
+    }
+
+    /*    *//**
      * Check duplicate streams (by name) on different flussonic media servers
      * <b>If duplicate stream found on server then all streams update from this server will be rejected
      * @param update update from specific server
      * @param nameIndex streams name index of all streams on all servers
-     */
+     *//*
     private void checkDuplicate(List<MediaServerEvent> update, Map<String, MediaServerEvent> nameIndex) {
         // check for duplicates
 
@@ -163,35 +228,53 @@ public class MonitoringScheduler {
                 prefix = "\n";
                 sb.append(d);
 
-/*                // FixMe  - удалить строку, поиск сканированием всех строк
+*//*                // FixMe  - удалить строку, поиск сканированием всех строк
                 // Добавил, чтобы удалялись дубликаты стримов, иначе весь update будет отброшен
                 update.removeIf(u->u.getName().equals(d.exists.getName()));
-*/
+*//*
             }
             throw new IllegalArgumentException(sb.toString());
         }
+    }*/
+
+
+    private static class EntityIndex<K,V> {
+        private final Map<K, V> index = new HashMap<>();
+
+        // index field extractor
+        private final Function<V,K> extractor;
+        private final BiConsumer<V, V> formatter;
+
+        public EntityIndex(Function<V, K> extractor, BiConsumer<V, V> formatter) {
+            this.extractor = extractor;
+            this.formatter = formatter;
+        }
+
+        public void check(V value) {
+
+            K key = extractor.apply(value);
+            V exists = index.get(key);
+            if(exists != null) {
+                formatter.accept(exists, value);
+            }
+            else {
+                index.put(key, value);
+            }
+        }
     }
 
-
-
-    private static class StreamUpdateDuplicate {
-
-        @Getter
-        private final MediaServerEvent exists;
-        private final MediaServerEvent update;
-
-
-        private StreamUpdateDuplicate(MediaServerEvent exists, MediaServerEvent update) {
-            this.exists = exists;
-            this.update = update;
-        }
-
-        @Override
-        public String toString() {
-            return "[" +
-                "exists={name='" + exists.getStreamName() + "', label='" + "exists TITILE" + "', server=" + exists.getServerName() + "}, " +
-                "event={name='" + update.getStreamName() + "', label='" + "event TITILE" + "', server=" + update.getServerName() + "}]";
-        }
+//
+//    @RequiredArgsConstructor
+//    private static class CheckResult {
+//        public final boolean fatal;
+//        public final String result;
+//    }
+    private static String streamDuplicateFormatter(String message, Stream exists, Stream duplicate) {
+        return message + " " + ": [" +
+            "exists={name='" + exists.getName() + "', title='" + exists.getTitle() +
+            "', server=" + exists.getServer().getHostname() + "}, " +
+            "event={name='" + duplicate.getName() + "', title='" + duplicate.getTitle() +
+            "', server=" + duplicate.getServer().getHostname() + "}]";
     }
 
 

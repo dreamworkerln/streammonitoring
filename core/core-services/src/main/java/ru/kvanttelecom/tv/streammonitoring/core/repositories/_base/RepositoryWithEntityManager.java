@@ -20,7 +20,7 @@ import java.io.Serializable;
 
 @NoRepositoryBean
 @Transactional
-public class RepositoryWithEntityManager<T, ID extends Serializable> extends EntityGraphSimpleJpaRepository<T, ID> /*SimpleJpaRepository<T, ID>*/
+public abstract class RepositoryWithEntityManager<T, ID extends Serializable> extends EntityGraphSimpleJpaRepository<T, ID> /*SimpleJpaRepository<T, ID>*/
     implements CustomRepository<T, ID> {
 
     private final EntityManager entityManager;

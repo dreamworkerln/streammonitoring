@@ -11,7 +11,7 @@ import java.util.function.Function;
  * So getAll() from L1 level will return consistent data (with low levels)
  */
 @Slf4j
-public class MultiCache<K,V> {
+public class MultiCache<K extends NaturalKey,V> {
 
     private final List<CacheLevel<K,V>> levels;
     private final Function<K, V> cacheLoader;

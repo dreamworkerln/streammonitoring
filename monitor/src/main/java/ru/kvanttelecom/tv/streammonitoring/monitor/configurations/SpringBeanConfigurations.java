@@ -1,6 +1,8 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.configurations;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
@@ -8,12 +10,21 @@ import ru.dreamworkerln.spring.utils.common.rest.RestClient;
 import ru.dreamworkerln.spring.utils.common.rest.RestClientBuilder;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 
+import java.time.Duration;
+
 
 @Configuration
 public class SpringBeanConfigurations {
 
-    public static final String REST_CLIENT_MEDIASERVER = "mediaserver";
-    public static final String REST_CLIENT_WATCHER = "watcher";
+    private final int WATCHER_HTTP_TIMEOUT = 30000;
+    private static final String REST_TEMPLATE_WATCHER   = "rest_template_watcher";
+    
+    public static final String REST_CLIENT_MEDIASERVER = "rest_client_mediaserver";
+    public static final String REST_CLIENT_WATCHER     = "rest_client_watcher";
+
+
+    // Rest MediaServer
+
     @Autowired
     MonitorProperties props;
 
@@ -27,8 +38,18 @@ public class SpringBeanConfigurations {
             .build();
     }
 
+    // Rest Watcher
+
+    @Bean(REST_TEMPLATE_WATCHER)
+    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+        return
+            builder.setConnectTimeout(Duration.ofMillis(WATCHER_HTTP_TIMEOUT))
+                .setReadTimeout(Duration.ofMillis(WATCHER_HTTP_TIMEOUT))
+                .build();
+    }
+
     @Bean(REST_CLIENT_WATCHER)
-    public RestClient restClientWatcher(RestTemplate restTemplate) {
+    public RestClient restClientWatcher(@Qualifier(REST_TEMPLATE_WATCHER) RestTemplate restTemplate) {
 
         RestClientBuilder builder = new RestClientBuilder();
         return builder

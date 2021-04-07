@@ -8,7 +8,7 @@ import java.util.Set;
 /**
  * Aka Function<K,T>
  */
-public interface CacheLevel<K, V> {
+public interface CacheLevel<K extends NaturalKey, V> {
 
     V get(K key);
 

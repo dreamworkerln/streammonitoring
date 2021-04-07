@@ -4,9 +4,11 @@ import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaReposito
 import com.cosium.spring.data.jpa.entity.graph.repository.EntityGraphJpaSpecificationExecutor;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kvanttelecom.tv.streammonitoring.core.cache.NaturalKey;
 
 import javax.persistence.PersistenceUnitUtil;
 import java.io.Serializable;
+import java.util.Optional;
 
 @NoRepositoryBean
 @Transactional
@@ -22,4 +24,10 @@ public interface CustomRepository<T, ID extends Serializable> extends EntityGrap
     void detach(T t);
     
     PersistenceUnitUtil getPersistenceUnitUtil();
+
+    void truncateLazy(T v);
+
+    Optional<T> findByKey(NaturalKey keygen);
+
+    boolean existsByKey(NaturalKey keygen);
 }

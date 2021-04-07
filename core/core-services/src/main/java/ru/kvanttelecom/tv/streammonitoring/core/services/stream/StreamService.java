@@ -6,10 +6,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.dreamworkerln.spring.utils.common.configurations.annotations.AutowireClassList;
 import ru.kvanttelecom.tv.streammonitoring.core.cache.MultiCache;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
-import ru.kvanttelecom.tv.streammonitoring.core.cache.levels.StreamCacheLevelHazelcast;
-import ru.kvanttelecom.tv.streammonitoring.core.cache.levels.StreamCacheLevelDb;
+import ru.kvanttelecom.tv.streammonitoring.core.services.stream.cache.level.StreamCacheLevelHazelcast;
+import ru.kvanttelecom.tv.streammonitoring.core.services.stream.cache.level.StreamCacheLevelDb;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Stream service, use read/write-through hazelcast embedded cache
@@ -22,8 +24,26 @@ public class StreamService {
     @AutowireClassList({StreamCacheLevelHazelcast.class, StreamCacheLevelDb.class})
     private MultiCache<Long,Stream> cache;
 
+//    /**
+//     * Find stream by StreamKey
+//     */
+//    public Optional<Stream> findById(long id) {
+//        return Optional.ofNullable(cache.get(id));
+//    }
+//
+
     /**
-     * Find stream by StreamKey
+     * Find Stream by Stream.server.hostName + "." + Stream.name
+     * @param hostname   Stream.server.hostName
+     * @param streamName Stream.name
+     * @return
+     */
+    public Optional<Stream> findByKey(String hostname, String streamName) {
+        return Optional.ofNullable(nameIndex.get(hostname + "." + streamName));
+    }
+
+    /**
+     * Find stream by Id
      */
     public Optional<Stream> findById(long id) {
         return Optional.ofNullable(cache.get(id));

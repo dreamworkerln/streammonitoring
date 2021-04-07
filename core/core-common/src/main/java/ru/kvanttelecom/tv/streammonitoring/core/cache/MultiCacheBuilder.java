@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class MultiCacheBuilder<K,V> {
+public class MultiCacheBuilder<K extends NaturalKey,V> {
 
     List<CacheLevel<K,V>> levels = new ArrayList<>();
     Function<K, V> cacheLoader;
 
-    public static <K,V> MultiCacheBuilder<K,V> getBuilder() {
+    public static <K extends NaturalKey,V> MultiCacheBuilder<K,V> getBuilder() {
         return new MultiCacheBuilder<>();
     }
 

@@ -41,9 +41,7 @@ public class WatcherGrabber {
 
 
     @PostConstruct
-    private void postConstruct() {
-
-    }
+    private void postConstruct() {}
 
 
     public String login() {
@@ -88,7 +86,7 @@ public class WatcherGrabber {
 
             String camerasUrl = props.getProtocol() +
                 props.getWatcher().getAddress() +
-                "/vsaas/api/v2/cameras";
+                "/vsaas/api/v2/cameras?limit=1000000";
 
             resp = restClient.get(camerasUrl);
 
