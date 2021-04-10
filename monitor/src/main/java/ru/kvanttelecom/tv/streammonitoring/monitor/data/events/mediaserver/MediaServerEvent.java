@@ -20,7 +20,7 @@ public class MediaServerEvent {
     private final String streamName;
 
     @Getter
-    private final String serverName;
+    private final String hostname;
 
     @Getter
     private final Instant time;
@@ -31,9 +31,9 @@ public class MediaServerEvent {
 //    @Getter
 //    private StreamKey streamKey;
 
-    public MediaServerEvent(MediaServerEventType eventType, String serverName, String streamName, Instant time, String reason) {
+    public MediaServerEvent(MediaServerEventType eventType, String hostname, String streamName, Instant time, String reason) {
         this.eventType = eventType;
-        this.serverName = serverName;
+        this.hostname = hostname;
         this.streamName = streamName;
         this.time = time;
         this.reason = reason;
@@ -46,7 +46,7 @@ public class MediaServerEvent {
         return "MediaServerEvent{" +
             "eventType=" + eventType +
             ", streamName='" + streamName + '\'' +
-            ", serverName='" + serverName + '\'' +
+            ", serverName='" + hostname + '\'' +
             ", time=" + time +
             ", reason='" + reason + '\'' +
             '}';

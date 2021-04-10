@@ -1,11 +1,14 @@
 package ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.AmqpId;
+import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArAbstract;
+import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArStreamFindAll;
 import ru.kvanttelecom.tv.streammonitoring.tbot.entities.Stream;
 
 import javax.annotation.PostConstruct;
@@ -14,6 +17,9 @@ import java.util.*;
 @Service
 @Slf4j
 public class StreamRpcClient {
+
+    private static final String exchanger = AmqpId.exchanger.stream.rpc.find;
+    private static final String routing   = AmqpId.binding.stream.rpc.find;
 
     @Autowired
     private RabbitTemplate template;
@@ -28,11 +34,10 @@ public class StreamRpcClient {
         List<Stream> result;
         log.trace("RPC REQUEST <FIND STREAMS ALL>");
 
-        String exchanger = AmqpId.exchanger.stream.rpc.findAll;
-        String routing   = AmqpId.binding.stream.rpc.findAll;
+        ArAbstract reqFindAll = new ArStreamFindAll();
 
-        ParameterizedTypeReference<List<Stream>> typeRef = new ParameterizedTypeReference<>() {};
-        result = template.convertSendAndReceiveAsType(exchanger, routing, new HashSet<>(), typeRef);
+        ParameterizedTypeReference<List<Stream>> resTypeRef = new ParameterizedTypeReference<>() {};
+        result = template.convertSendAndReceiveAsType(exchanger, routing, reqFindAll, resTypeRef);
         log.trace("RPC RESPONSE: {}", result);
 
         if(result == null) {
@@ -44,14 +49,17 @@ public class StreamRpcClient {
 
 
     public List<Stream> findByKeys(List<Long> ids) {
+        throw new NotImplementedException();
+    }
 
+
+    public List<Stream> findOffline() {
+        throw new NotImplementedException(); 
+
+        /*
         List<Stream> result;
 
-        if(ids.size() == 0) {
-            return new ArrayList<>();
-        }
-
-        log.trace("RPC REQUEST <FIND STREAMS BY NAME>: {}", ids);
+        log.trace("RPC REQUEST <FIND OFFLINE STREAMS>");
 
         String exchanger = AmqpId.exchanger.stream.rpc.findByKeys;
         String routing = AmqpId.binding.stream.rpc.findByKeys;
@@ -63,13 +71,10 @@ public class StreamRpcClient {
         if(result == null) {
             throw new RuntimeException("RPC <FIND STREAMS BY NAME>: NO RESPONSE");
         }
-
         return result;
+        */
     }
 
     // ----------------------------------------------------------------------------
-
-
-
 
 }

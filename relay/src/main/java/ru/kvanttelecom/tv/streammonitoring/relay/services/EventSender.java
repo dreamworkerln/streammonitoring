@@ -33,12 +33,25 @@ public class EventSender {
     public void send(String json) {
         List<String> receivers = props.getReceiverList();
         for (String receiver : receivers) {
-            jobPool.add(null,
-                unchecked(unused -> {
-                //TimeUnit.SECONDS.sleep(10);
+            jobPool.add(null, unused -> {
+
+                try {
                     restClient.post(props.getProtocol() + receiver, json);
-                    return new JobResult<>();
-                }));
+                }
+                catch (Exception ignored) {}
+
+                return new JobResult<>();
+            });
         }
     }
 }
+/*
+
+    unchecked(unused -> {
+    //TimeUnit.SECONDS.sleep(10);
+        restClient.post(props.getProtocol() + receiver, json);
+        return new JobResult<>();
+    })
+
+
+ */

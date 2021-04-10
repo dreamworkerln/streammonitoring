@@ -42,5 +42,17 @@ monitor-dev.*
 relay-dev.*
 tbot-dev.*
 
+application-cam.*
+monitor-cam.*
+relay-cam.*
+tbot-cam.*
+
+application-tv.*
+monitor-tv.*
+relay-tv.*
+tbot-tv.*
+
 # docker-compose dev configs
 compose-dev/
+compose-cam/
+compose-tv/

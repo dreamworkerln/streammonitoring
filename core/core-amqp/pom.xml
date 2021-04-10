@@ -31,10 +31,10 @@
             <scope>compile</scope>
         </dependency>
 
-<!--        &lt;!&ndash;module core-services &ndash;&gt;-->
+<!--        &lt;!&ndash;module core-db &ndash;&gt;-->
 <!--        <dependency>-->
 <!--            <groupId>ru.kvant-telecom.tv.streammonitoring</groupId>-->
-<!--            <artifactId>core-services</artifactId>-->
+<!--            <artifactId>core-db</artifactId>-->
 <!--            <version>0.1</version>-->
 <!--            <scope>compile</scope>-->
 <!--        </dependency>-->

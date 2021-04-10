@@ -21,7 +21,7 @@
         <module>utils</module>
         <module>core/core-common</module>
         <module>core/core-amqp</module>
-        <module>core/core-services</module>
+        <module>core/core-db</module>
         <module>relay</module>
         <module>monitor</module>
         <module>tbot</module>
@@ -227,12 +227,27 @@
                 <version>3.1.0</version>
                 <configuration>
                     <excludes>
+                        <!-- dev  -->
                         <exclude>application-dev*</exclude>
-                        <exclude>core-services-dev*</exclude>
+                        <exclude>core-db-dev*</exclude>
                         <exclude>monitor-dev*</exclude>
                         <exclude>relay-dev*</exclude>
                         <exclude>tbot-dev*</exclude>
                         <exclude>utils-dev*</exclude>
+                        <!-- cam  -->
+                        <exclude>application-cam*</exclude>
+                        <exclude>core-db-cam*</exclude>
+                        <exclude>monitor-cam*</exclude>
+                        <exclude>relay-cam*</exclude>
+                        <exclude>tbot-cam*</exclude>
+                        <exclude>utils-cam*</exclude>
+                        <!-- tv  -->
+                        <exclude>application-tv*</exclude>
+                        <exclude>core-db-tv*</exclude>
+                        <exclude>monitor-tv*</exclude>
+                        <exclude>relay-tv*</exclude>
+                        <exclude>tbot-tv*</exclude>
+                        <exclude>utils-tv*</exclude>                        
                     </excludes>
                 </configuration>
             </plugin>

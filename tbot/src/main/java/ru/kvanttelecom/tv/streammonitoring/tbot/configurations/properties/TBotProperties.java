@@ -26,9 +26,9 @@ public class TBotProperties {
     @Getter
     private String address;
 
-    @Value("${refresh.interval.sec}")
-    @Getter
-    private int refreshIntervalSec;
+//    @Value("${refresh.interval.sec}")
+//    @Getter
+//    private int refreshIntervalSec;
 
 
     @PostConstruct

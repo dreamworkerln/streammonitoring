@@ -31,15 +31,10 @@ public class AMQPConfiguration {
 
     // STREAM RPC ------------------------------
 
-    //  FindAll
-    private Queue queueStreamRpcFindAll;
-    private DirectExchange exchangeStreamRpcFindAll;
-    private Binding bindingStreamRpcFindAll;
-
-    //  FindByKeys
-    private Queue queueStreamRpcFindByKeys;
-    private DirectExchange exchangeStreamRpcFindByKeys;
-    private Binding bindingStreamRpcFindByKeys;
+    //  Find
+    private Queue queueStreamRpcFind;
+    private DirectExchange exchangeStreamRpcFind;
+    private Binding bindingStreamRpcFind;
 
 
 
@@ -58,17 +53,11 @@ public class AMQPConfiguration {
 
         // RPC -------------------------
 
-        // FindAll
-        queueStreamRpcFindAll = new Queue(AmqpId.queue.stream.rpc.findAll);
-        exchangeStreamRpcFindAll = new DirectExchange(AmqpId.exchanger.stream.rpc.findAll);
-        bindingStreamRpcFindAll = BindingBuilder.bind(queueStreamRpcFindAll)
-            .to(exchangeStreamRpcFindAll).with(AmqpId.binding.stream.rpc.findAll);
-
-        // FindByKeys
-        queueStreamRpcFindByKeys = new Queue(AmqpId.queue.stream.rpc.findByKeys);
-        exchangeStreamRpcFindByKeys = new DirectExchange(AmqpId.exchanger.stream.rpc.findByKeys);
-        bindingStreamRpcFindByKeys = BindingBuilder.bind(queueStreamRpcFindByKeys)
-            .to(exchangeStreamRpcFindByKeys).with(AmqpId.binding.stream.rpc.findByKeys);
+        // Find
+        queueStreamRpcFind = new Queue(AmqpId.queue.stream.rpc.find);
+        exchangeStreamRpcFind = new DirectExchange(AmqpId.exchanger.stream.rpc.find);
+        bindingStreamRpcFind = BindingBuilder.bind(queueStreamRpcFind)
+            .to(exchangeStreamRpcFind).with(AmqpId.binding.stream.rpc.find);
 
     }
 

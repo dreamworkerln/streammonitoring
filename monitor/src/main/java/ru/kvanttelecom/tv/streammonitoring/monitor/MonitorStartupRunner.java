@@ -32,7 +32,6 @@ public class MonitorStartupRunner extends BaseStartupRunner {
         String hostname = domainName.split("\\.")[0];
         Server server = new Server(hostname, domainName);
         server = serverService.save(server);
-        serverService.save(server);
         log.info("OK");
     }
 }

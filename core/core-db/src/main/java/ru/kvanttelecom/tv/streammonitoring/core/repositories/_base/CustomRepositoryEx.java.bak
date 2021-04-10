@@ -1,0 +1,9 @@
+package ru.kvanttelecom.tv.streammonitoring.core.repositories._base;
+
+import java.io.Serializable;
+import java.util.List;
+
+public interface CustomRepositoryEx<T, ID extends Serializable> extends CustomRepository<T, ID> {
+
+
+}

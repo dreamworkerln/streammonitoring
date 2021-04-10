@@ -5,12 +5,11 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.AmqpId;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArAbstract;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.services.stream.StreamService;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Service
 @Slf4j
@@ -22,15 +21,19 @@ public class StreamRpcServer {
     /**
      * find streams by ids
      */
-    @RabbitListener(queues = AmqpId.queue.stream.rpc.findByKeys)
-    private List<Stream> findByKeys(List<Long> keys) {
+    @RabbitListener(queues = AmqpId.queue.stream.rpc.find)
+    private List<Stream> find(ArAbstract request) {
+
+        log.info("AMQP request: {}", request);
 
         List<Stream> result;
 
         try {
-            log.trace("RPC REQUEST <FIND STREAMS BY KEY> PARAMS: {}", keys);
-            result = streamService.findByKeys(keys);
-            log.trace("RPC <FIND STREAMS BY KEY> RESPONSE: {}", result);
+            log.trace("RPC REQUEST <FIND STREAMS> PARAMS: {}", request);
+
+            result =
+            //result = streamService.findAllById(keys);
+            log.trace("RPC <FIND STREAMS BY KEY> RESPONSE: {}", "NOT IMPLEMENTED");
         }
         catch(Exception rethrow) {
             log.error("StreamRpcServer.response error:", rethrow);
@@ -38,6 +41,16 @@ public class StreamRpcServer {
         }
         return result;
     }
+
+
+
+
+
+}
+
+// @RabbitListener(queues = "#{@queueStreamRpcGetAll.getName()}")
+
+/*
 
 
     @RabbitListener(queues = AmqpId.queue.stream.rpc.findAll)
@@ -58,6 +71,5 @@ public class StreamRpcServer {
     }
 
 
-}
 
-// @RabbitListener(queues = "#{@queueStreamRpcGetAll.getName()}")
+ */

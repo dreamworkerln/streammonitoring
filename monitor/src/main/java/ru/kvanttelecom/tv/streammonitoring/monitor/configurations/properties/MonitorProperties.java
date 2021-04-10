@@ -26,9 +26,23 @@ public class MonitorProperties {
     private int refreshIntervalSec;
 
 
-    @Value("${check.stream.uniqueness}")
+    /**
+     * Уникальность имени стрима в системе(на всех стримерах)
+     */
+    @Value("${check.stream.global.uniqueness}")
     @Getter
-    private boolean checkStreamUniq;
+    private boolean checkStreamGlobalUniq;
+
+
+
+//    /**
+//     * Уникальность имени стрима в пределах одного стримера (и так обеспечивается flussonic)
+//     */
+//    @Value("${check.stream.streamer.uniqueness}")
+//    @Getter
+//    private boolean checkStreamStreamerUniq;
+
+
 
     @Getter
     @Autowired
@@ -49,7 +63,7 @@ public class MonitorProperties {
 
         // validating
         if(refreshIntervalSec <=0) {
-            throw new IllegalArgumentException("refresh.interval.sec <=0");
+            throw new IllegalArgumentException("refresh.interval.sec <= 0");
         }
 
         protocol = commonProps.getProtocol();
@@ -81,23 +95,30 @@ public class MonitorProperties {
     public static class Watcher {
 
         /**
+         * Использовать Watcher
+         */
+        @Value("${watcher.use:false}")
+        @Getter
+        private boolean use;
+
+        /**
          * Address of watcher (host:port)
          */
         @Getter(AccessLevel.PUBLIC)
-        @Value("${watcher.address}")
+        @Value("${watcher.address:null}")
         private String address;
 
 
-        @Value("${watcher.username}")
+        @Value("${watcher.username:null}")
         @Getter
         private String username;
 
 
-        @Value("${watcher.password}")
+        @Value("${watcher.password:null}")
         @Getter
         private String password;
 
-        @Value("${watcher.token}")
+        @Value("${watcher.token:null}")
         @Getter
         private String token;
 

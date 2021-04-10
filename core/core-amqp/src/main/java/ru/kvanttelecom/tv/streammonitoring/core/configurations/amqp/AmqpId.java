@@ -17,8 +17,7 @@ public class AmqpId {
 
             // RPC
             public static class rpc {
-                public static final String findAll =    "stream.rpc.findAll";
-                public static final String findByKeys = "stream.rpc.findByKeys";
+                public static final String find =    "stream.rpc.find";
             }
         }
     }
@@ -35,8 +34,7 @@ public class AmqpId {
 
             // RPC
             public static class rpc {
-                public static final String findAll =    "stream.rpc.findAll";
-                public static final String findByKeys = "stream.rpc.findByKeys";
+                public static final String find =    "stream.rpc.find";
             }
         }
     }
@@ -54,8 +52,7 @@ public class AmqpId {
 
             // RPC
             public static class rpc {
-                public static final String findAll =    "stream.rpc.findAll";
-                public static final String findByKeys = "stream.rpc.findByKeys";
+                public static final String find =    "stream.rpc.findAll";
             }
         }
     }

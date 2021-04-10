@@ -8,7 +8,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
 import ru.dreamworkerln.spring.utils.common.rest.RestClientBuilder;
+import ru.kvanttelecom.tv.streammonitoring.core.services.stream.StreamService;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamStateService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.StreamImporter;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.downloader.StreamDownloader;
 
 import java.time.Duration;
 
@@ -16,9 +20,9 @@ import java.time.Duration;
 @Configuration
 public class SpringBeanConfigurations {
 
-    private final int WATCHER_HTTP_TIMEOUT = 30000;
+    private final int WATCHER_HTTP_TIMEOUT = 60000;
     private static final String REST_TEMPLATE_WATCHER   = "rest_template_watcher";
-    
+
     public static final String REST_CLIENT_MEDIASERVER = "rest_client_mediaserver";
     public static final String REST_CLIENT_WATCHER     = "rest_client_watcher";
 
@@ -55,6 +59,22 @@ public class SpringBeanConfigurations {
         return builder
             .restTemplate(restTemplate)
             .header("x-vsaas-session", props.getWatcher().getToken())
+            .userAgent("PostmanRuntime/7.26.10")
+            .acceptEncoding("gzip, deflate, br")
             .build();
+    }
+
+    @Bean
+    public StreamImporter streamImporter(StreamService streamService,
+                                         StreamStateService streamStateService,
+                                         StreamDownloader watcherStreamDownloader,
+                                         StreamDownloader mediaserverStreamDownloader) {
+
+        if(props.getWatcher().isUse()) {
+            return new StreamImporter(streamService, streamStateService, watcherStreamDownloader, props);
+        }
+        else {
+            return new StreamImporter(streamService, streamStateService, mediaserverStreamDownloader, props);
+        }
     }
 }

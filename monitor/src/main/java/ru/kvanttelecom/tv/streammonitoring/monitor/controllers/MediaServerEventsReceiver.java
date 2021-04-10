@@ -6,7 +6,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.events.mediaserver.MediaServerEvent;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.MediaServerEventParser;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.parser.MediaServerEventParser;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.MediaServerEventHandler;
 
 import java.util.List;
 
@@ -17,29 +18,25 @@ public class MediaServerEventsReceiver {
     @Autowired
     private MediaServerEventParser parser;
 
-    //@Autowired
-    //MediaServiceEventAppender eventAppender;
+
+    @Autowired
+    private MediaServerEventHandler eventHandler;
+
+
 
     /**
-     * receive updates from flussonic media server
-     * <br>Consume array ov events
-     * @param json
+     * Receive updates from flussonic media server
+     * <br>Consume list of events
      */
     @PostMapping("/mediaserver_events")
-    public void  processRequest(@RequestBody String json) {
-
+    public void processRequest(@RequestBody String json) {
         try {
             log.trace("Received: {}", json);
-            List<MediaServerEvent> events = parser.parseEvent(json);
-            //eventAppender.append(events);
+            List<MediaServerEvent> events = parser.getArray(json);
+            eventHandler.applyEvents(events);
         }
         catch(Exception skip) {
             log.error("MediaServerEventsReceiver error:", skip);
         }
-
-
-
-
-
     }
 }

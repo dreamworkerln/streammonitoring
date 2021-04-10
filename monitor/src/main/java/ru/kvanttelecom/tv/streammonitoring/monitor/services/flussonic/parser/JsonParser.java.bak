@@ -1,0 +1,9 @@
+package ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.parser;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface JsonParser<T> {
+    List<T> getArray(String json);
+    Optional<T> getOne(String json);
+}
