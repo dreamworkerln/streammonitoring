@@ -7,7 +7,6 @@ import java.util.Objects;
  * Stream
  */
 @Data
-@NoArgsConstructor
 public class Stream {
 
     @Getter
@@ -31,6 +30,13 @@ public class Stream {
     // Is stream flapping
     private boolean flapping;
 
+    protected Stream() {}
+
+    public Stream(String server, String name, boolean alive) {
+        this.server = server;
+        this.name = name;
+        this.alive = alive;
+    }
 
     @Override
     public String toString() {

@@ -2,6 +2,11 @@ package ru.kvanttelecom.tv.streammonitoring.core.entities.stream;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
+
+import javax.persistence.PostLoad;
+import javax.persistence.PostPersist;
+import javax.persistence.PostUpdate;
 
 @Component
 @Slf4j
@@ -24,4 +29,11 @@ public class StreamPersistListener {
 //            stream.setStreamKey(StreamKey.from(serverId, streamId));
 //        }
 //    }
+
+    @PostLoad
+    @PostUpdate
+    @PostPersist
+    public void methodExecuteBeforeSave(Stream stream) {
+        stream.initialize();
+    }
 }

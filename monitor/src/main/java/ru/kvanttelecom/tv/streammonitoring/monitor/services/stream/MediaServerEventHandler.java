@@ -3,16 +3,14 @@ package ru.kvanttelecom.tv.streammonitoring.monitor.services.stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-import ru.kvanttelecom.tv.streammonitoring.core.services.stream.StreamService;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamEventDto;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.enums.MediaServerEventType;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.events.mediaserver.MediaServerEvent;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.StreamManager;
+import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
+import java.util.*;
 import java.util.function.Function;
 
 
@@ -20,79 +18,80 @@ import java.util.function.Function;
 @Slf4j
 public class MediaServerEventHandler {
 
-    private Map<MediaServerEventType, Consumer<MediaServerEvent>> handlers = new HashMap<>();
+    private final Map<MediaServerEventType, Function<MediaServerEvent, Set<StreamEventType>>> handlers = new HashMap<>();
 
     @Autowired
     StreamStateService stateService;
 
     @Autowired
-    StreamService streamService;
-
+    StreamManager streamManager;
 
     @PostConstruct
     private void init() {
 
-        handlers.put(MediaServerEventType.UNKNOWN, this::unknownHandler);
-        handlers.put(MediaServerEventType.SOURCE_READY, this::unknownHandler);
+        handlers.put(MediaServerEventType.UNKNOWN, this::unknown);
+
+        handlers.put(MediaServerEventType.SOURCE_READY, this::stateChanged);
+        handlers.put(MediaServerEventType.SOURCE_LOST, this::stateChanged);
+
+        handlers.put(MediaServerEventType.STREAM_STARTED, this::started);
+        handlers.put(MediaServerEventType.STREAM_STOPPED, this::stopped);
     }
 
 
-
+    /**
+     * Process incoming events from Mediaserver
+     * @param events incoming events
+     */
     public void applyEvents(List<MediaServerEvent> events) {
 
-        // Don't receive events if StreamService not initialized
-        if(!streamService.isInitialized()) {
+        // do not handle incoming events if local streams have not been imported yet (initialized)
+        if(stateService.size() == 0) {
             return;
         }
 
-        String streamKey;
+        // processed event list
+        List<StreamEventDto> notifications = new ArrayList<>();
 
         for (MediaServerEvent event : events) {
-            streamKey = getStreamKey(event);
 
+            // calculate(process) stream events
+            Set<StreamEventType> calculatedEvents = handlers.get(event.getEventType()).apply(event);
 
+            if(calculatedEvents.size() > 0) {
+                StreamEventDto dto = new StreamEventDto(event.getHostname(), event.getName(), calculatedEvents);
+                notifications.add(dto);
+            }
+        }
 
+        // ToDo: send events to subscribers
+        if (notifications.size() > 0) {
+            //log.trace("Sending events to subscribers: {}", notifications);
         }
     }
 
+    // handlers ---------------------------------------------------------------
 
-
-    // ---------------------------------------------------------------------------------
-
-    private void unknownHandler(MediaServerEvent event) {
-        log.warn("Unknown MediaServerEvent: {}", event);
+    private Set<StreamEventType> unknown(MediaServerEvent event) {
+        log.error("UNKNOWN EVENT: {}", event);
+        return new HashSet<>(Collections.singletonList(StreamEventType.ERROR));
     }
 
-    private void lostHandler(MediaServerEvent event) {
-        log.trace("MediaServerEvent: {}", event);
-        stateService.process();
+    private Set<StreamEventType> started(MediaServerEvent event) {
+        log.trace("started: {}", event);
+
+        streamManager.importOne(event.getStreamKey());
+        return new HashSet<>(Collections.singletonList(StreamEventType.ADDED));
     }
 
-    private Boolean readyHandler(MediaServerEvent event) {
-        log.trace("MediaServerEvent: {}", event);
-
-        return false;
+    private Set<StreamEventType> stopped(MediaServerEvent event) {
+        log.trace("stopped: {}", event);
+        streamManager.delete(event.getStreamKey());
+        return new HashSet<>(Collections.singletonList(StreamEventType.DELETED));
     }
 
-    // -----------------------------------------------------------------
-
-
-
-
-    private static String getStreamKey(String hostname, String name) {
-        Assert.notNull(hostname, "hostname == null");
-        Assert.notNull(name, "name == null");
-        return hostname + "." + name;
+    private Set<StreamEventType> stateChanged(MediaServerEvent event) {
+        log.trace("stateChanged: {}", event);
+        return stateService.process(event);
     }
-
-    private static String getStreamKey(MediaServerEvent event) {
-        Assert.notNull(event.getHostname(), "hostname == null");
-        Assert.notNull(event.getStreamName(), "name == null");
-        return event.getHostname() + "." + event.getStreamName();
-    }
-
-
-
-
-
 }

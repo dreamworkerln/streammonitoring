@@ -1,21 +1,16 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.parser;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.NotImplementedException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
-import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.enums.MediaServerEventType;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.events.mediaserver.MediaServerEvent;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static ru.dreamworkerln.spring.utils.common.StringUtils.formatMsg;
 import static ru.dreamworkerln.spring.utils.common.StringUtils.isBlank;
@@ -71,13 +66,10 @@ public class MediaServerEventParser {
                 }
                 catch(IllegalArgumentException rethrow) {
                     String message = formatMsg("Parsing stream problem: {} ", streamName);
-                    log.error(message, rethrow);
-                    throw rethrow;
+                    throw new IllegalArgumentException(message, rethrow);
                 }
 
-                MediaServerEvent mediaServerEvent =
-                    new MediaServerEvent(eventType, serverName, streamName, time, reason);
-
+                MediaServerEvent mediaServerEvent = new MediaServerEvent(eventType, serverName, streamName, time, reason);
                 result.add(mediaServerEvent);
             }
         }
@@ -87,8 +79,7 @@ public class MediaServerEventParser {
                 formatMsg("Mediaserver parsing stream problem: {} ", streamName) +
                     formatMsg("Json parse error: {} ", rethrow.getMessage()) +
                     formatMsg("Problem json:\n{}", json);
-            log.error(message);
-            throw rethrow;
+            throw new JSONException(message, rethrow);
         }
         return result;
     }

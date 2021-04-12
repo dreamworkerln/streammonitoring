@@ -2,7 +2,8 @@ package ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.services.stream.StreamService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamStateService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
@@ -17,22 +18,25 @@ import static ru.dreamworkerln.spring.utils.common.SpringBeanUtilsEx.copyPropert
 
 
 /**
- * import Streams into system from different sources
- * <br>Currently from: Flussonic Watcher / Mediaserver
+ * Stream manager -
+ * Import Streams from different sources (Watcher / Mediaserver)
+ * Remove streams
+ * <br>Call StreamStatusService on import/delete operations
+ *
  */
 @Transactional
 @Slf4j
-public class StreamImporter {
+public class StreamManager {
 
     private final StreamService streamService;
     private final MonitorProperties props;
     private final StreamDownloader streamDownloader;
     private final StreamStateService streamStateService;
 
-    public StreamImporter(StreamService streamService,
-                          StreamStateService streamStateService,
-                          StreamDownloader streamDownloader,
-                          MonitorProperties props) {
+    public StreamManager(StreamService streamService,
+                         StreamStateService streamStateService,
+                         StreamDownloader streamDownloader,
+                         MonitorProperties props) {
 
         this.streamService = streamService;
         this.streamStateService = streamStateService;
@@ -40,6 +44,9 @@ public class StreamImporter {
         this.props = props;
     }
 
+    /**
+     * Synchronize all local streams with remote source
+     */
     public synchronized void importAll() {
 
         boolean haveStreams;
@@ -48,7 +55,7 @@ public class StreamImporter {
 
         // Get new streams
         // <StreamKey,Stream>
-        Map<String, Stream> importStreams = streamDownloader.getAll().stream()
+        Map<StreamKey, Stream> importStreams = streamDownloader.getAll().stream()
             .collect(Collectors.toMap(Stream::getStreamKey, Function.identity()));
 
         // Checking for duplicate names(strict)/titles/addresses
@@ -59,10 +66,13 @@ public class StreamImporter {
 
         // Get all local streams (from DB)
         // <StreamKey,Stream>
-        Map<String,Stream> streams = streamService.findAll().stream()
+        Map<StreamKey,Stream> streams = streamService.findAll().stream()
             .collect(Collectors.toMap(Stream::getStreamKey, Function.identity()));
 
-        haveStreams = streams.size() > 0;
+        //haveStreams = streams.size() > 0;
+
+        // Only synchronize stream "permanent" data,
+        // stream status doesn't get in count here
 
         // Calculate streams to create, delete, update
         List<Stream> toCreate = new ArrayList<>();
@@ -70,7 +80,7 @@ public class StreamImporter {
         List<Stream> toDelete = new ArrayList<>();
 
 
-        for (Map.Entry<String, Stream> entry : streams.entrySet()) {
+        for (Map.Entry<StreamKey, Stream> entry : streams.entrySet()) {
 
             Stream stream = streams.get(entry.getKey());
             Stream watcherStream = importStreams.get(entry.getKey());
@@ -89,7 +99,7 @@ public class StreamImporter {
         }
 
         // to create
-        for (Map.Entry<String, Stream> entry : importStreams.entrySet()) {
+        for (Map.Entry<StreamKey, Stream> entry : importStreams.entrySet()) {
             Stream stream = streams.get(entry.getKey());
             Stream watcherStream = importStreams.get(entry.getKey());
 
@@ -98,7 +108,7 @@ public class StreamImporter {
             }
         }
 
-        haveStreams = haveStreams || toCreate.size() > 0;
+        //haveStreams = haveStreams || toCreate.size() > 0;
 
         // guard
         streams = null;
@@ -108,35 +118,53 @@ public class StreamImporter {
         streamService.saveAll(toCreate);   // add new
         streamService.saveAll(toUpdate);   // update existing
 
-        // Set StreamService initialization status
-        if (haveStreams && !streamService.isInitialized()) {
-            streamService.setInitialized(true);
-        }
+//        // Set StreamService initialization status
+//        if (haveStreams && !streamService.isInitialized()) {
+//            streamService.setInitialized(true);
+//        }
 
         // StreamStatus
-        toDelete.forEach(streamStateService::remove); // remove locally deprecated
+        toDelete.forEach(streamStateService::delete); // remove locally deprecated
         toCreate.forEach(streamStateService::put);    // add new
-        //////////////////////////////////////////////// no need to update -
-        // cause all update events will send by flussonic notify events
+
+        // update events will send by flussonic notify events
         // and then will be received and registered in controller MediaServerEventsReceiver
+        // but we should synchronize stream status from mediaserver HTTP API "get stream list"
+        // in case we miss update event
     }
 
 
-    public synchronized void importOne(String hostname, String name) {
+    /**
+     * Synchronize one local stream with remote source
+     */
+    public synchronized void importOne(StreamKey streamKey) {
 
-        Optional<Stream> oStream = streamService.findByHostnameAndName(hostname, name);
-
-        if(oStream.isPresent()) {
-            return;
-        }
-        
         // download new stream
-        oStream = streamDownloader.getOne(hostname, name);
+        Optional<Stream> oStream = streamDownloader.getOne(streamKey);
+
+        // if downloaded
         oStream.ifPresent(s -> {
-            streamService.save(s);
-            streamStateService.put(s);
+
+            // delete old
+            streamService.delete(s);      // remove from DB
+            streamStateService.delete(s); // remove from StreamStatus
+
+            // replace to new
+            streamService.save(s);      // add to DB
+            streamStateService.put(s);  // add to StreamStatus
         });
     }
+
+
+    /**
+     *  Delete one local stream
+     */
+    public synchronized void delete(StreamKey streamKey) {
+        streamService.delete(streamKey);      // remove from DB
+        streamStateService.delete(streamKey);              // remove from StreamStatus
+    }
+
+
 
 
     // ------------------------------------------------------------------------------
@@ -178,7 +206,7 @@ public class StreamImporter {
      * Validating streams for duplicate name/title
      */
     // WARN - not working with television channels
-    protected void checkStreamNameDuplicates(Map<String,Stream> streams) {
+    protected void checkStreamNameDuplicates(Map<StreamKey,Stream> streams) {
 
         List<EntityIndex<String,Stream>> checkers = new ArrayList<>();
 

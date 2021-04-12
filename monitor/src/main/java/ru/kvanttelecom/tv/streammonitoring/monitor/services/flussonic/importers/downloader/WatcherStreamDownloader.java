@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.services.server.ServerService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.parser.WatcherStreamParser;
@@ -63,31 +65,32 @@ public class WatcherStreamDownloader implements StreamDownloader {
         List<Stream> result;
         ResponseEntity<String> resp = null;
         String body = null;
-        try {
-            String url = props.getProtocol() +
-                props.getWatcher().getAddress() +
-                "/vsaas/api/v2/cameras?limit=" + STREAM_LIMIT;
 
+        String url = props.getProtocol() +
+            props.getWatcher().getAddress() +
+            "/vsaas/api/v2/cameras?limit=" + STREAM_LIMIT;
+
+        try {
             log.trace("GET: {}", url);
             resp = restClient.get(url);
-
             body = resp.hasBody() ? resp.getBody() : null;
             throwIfBlank(body, "Response <Flussonic Watcher>: json<cameras> == empty");
+        }
+        catch (Exception rethrow) {
+            throw new RuntimeException("Watcher download cameras error:", rethrow);
+        }
 
+        try {
             Map<String, Server> servers = serverService.findAll().stream()
                 .collect(Collectors.toMap(Server::getDomainName, Function.identity()));
 
             result = streamParser.getArray(body, servers);
         }
-        // for log append
         catch (Exception rethrow) {
-            String message = "Watcher get cameras error:";
-            if (resp != null) {
-                message = formatMsg(message + " {}, {}", resp.getStatusCode(), body);
-            }
-            log.error(message, rethrow);
-            throw rethrow;
+            String message = formatMsg("Watcher parse cameras error:" + " {}, {}", resp.getStatusCode(), body);
+            throw new RuntimeException(message, rethrow);
         }
+
         return result;
     }
 
@@ -100,35 +103,38 @@ public class WatcherStreamDownloader implements StreamDownloader {
      * @return Optional<Stream>
      */
     @Override
-    public Optional<Stream> getOne(String hostname, String name) {
+    public Optional<Stream> getOne(StreamKey streamKey) {
         Optional<Stream> result;
         ResponseEntity<String> resp = null;
         String body = null;
-        try {
-            String url = props.getProtocol() +
-                props.getWatcher().getAddress() +
-                "/vsaas/api/v2/cameras/" + name;
 
+        String url = props.getProtocol() +
+            props.getWatcher().getAddress() +
+            "/vsaas/api/v2/cameras/" + streamKey.getName();
+
+        try {
             log.trace("GET: {}", url);
             resp = restClient.get(url);
 
             body = resp.hasBody() ? resp.getBody() : null;
             throwIfBlank(body, "Response <Flussonic Watcher>: json<camera> == empty");
+        }
+        catch (Exception rethrow) {
+            throw new RuntimeException("Watcher download camera error:", rethrow);
+        }
 
+
+        try {
             Map<String, Server> servers = serverService.findAll().stream()
                 .collect(Collectors.toMap(Server::getDomainName, Function.identity()));
 
             result = streamParser.getOne(body, servers);
         }
-        // for log append
         catch (Exception rethrow) {
-            String message = "Watcher get cameras error:";
-            if (resp != null) {
-                message = formatMsg(message + " {}, {}", resp.getStatusCode(), body);
-            }
-            log.error(message, rethrow);
-            throw rethrow;
+            String message = formatMsg("Watcher parse camera error:" + " {}, {}", resp.getStatusCode(), body);
+            throw new RuntimeException(message, rethrow);
         }
+
         return result;
     }
 
@@ -172,17 +178,16 @@ public class WatcherStreamDownloader implements StreamDownloader {
             body = resp.hasBody() ? resp.getBody() : null;
             throwIfBlank(body, "Response <Flussonic Watcher>: json<login> == empty");
 
+            Assert.notNull(body, "body == null");
             JSONObject response = new JSONObject(body);
             result = response.getString("session");
         }
-        // for log append
         catch (Exception rethrow) {
-            String message = "Watcher authentication error:";
+            String message = "Watcher authentication error: ";
             if(resp != null) {
-                message = formatMsg(message + " {}, {}", resp.getStatusCode(), body);
+                message += formatMsg("Watcher authentication error:" + " {}, {}", resp.getStatusCode(), body);
             }
-            log.error(message, rethrow);
-            throw rethrow;
+            throw new RuntimeException(message, rethrow);
         }
         return result;
     }

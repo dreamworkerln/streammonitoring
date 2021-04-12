@@ -6,10 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.AmqpId;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArAbstract;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArStreamFindOffline;
 import ru.kvanttelecom.tv.streammonitoring.core.services.stream.StreamService;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamStateService;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -18,26 +20,33 @@ public class StreamRpcServer {
     @Autowired
     StreamService streamService;
 
+    @Autowired
+    StreamStateService streamStateService;
+
     /**
      * find streams by ids
      */
     @RabbitListener(queues = AmqpId.queue.stream.rpc.find)
-    private List<Stream> find(ArAbstract request) {
+    private List<String> find(ArAbstract request) {
 
-        log.info("AMQP request: {}", request);
+        List<String> result = null;
+        log.trace("AMQP request: {}", request);
 
-        List<Stream> result;
 
         try {
             log.trace("RPC REQUEST <FIND STREAMS> PARAMS: {}", request);
 
-            result =
-            //result = streamService.findAllById(keys);
-            log.trace("RPC <FIND STREAMS BY KEY> RESPONSE: {}", "NOT IMPLEMENTED");
+            if (request instanceof ArStreamFindOffline) {
+
+                result = streamStateService.getOffline().stream()
+                    .map(s -> s.getStreamKey().toString())
+                    .collect(Collectors.toList());
+                
+                log.trace("RPC <FIND STREAMS> RESPONSE: {}", result);
+            }
         }
         catch(Exception rethrow) {
-            log.error("StreamRpcServer.response error:", rethrow);
-            throw rethrow;
+            throw new RuntimeException("StreamRpcServer.find error:", rethrow);
         }
         return result;
     }

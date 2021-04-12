@@ -16,6 +16,7 @@ import ru.dreamworkerln.spring.utils.common.threadpool.JobResult;
 import ru.kvanttelecom.tv.streammonitoring.tbot.entities.Stream;
 import ru.kvanttelecom.tv.streammonitoring.tbot.beans.StreamMap;
 import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.TBotProperties;
+import ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp.StreamRpcClient;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
@@ -45,6 +46,13 @@ public class Telebot {
 
     private TelegramBot bot;
 
+
+    private static final String HELP_CONTENT =
+        "/streams - list of not working/flapping streams" +
+        "\n" + "/help - this help" +
+        "\n" + "/echo [text] - echo [text]" +
+        "\n" + "/ping - echo-reply";
+
     //private static final Splitter TELEGRAM_LENGTH_SPLITTER = Splitter.fixedLength(TELEGRAM_MAX_MESSAGE_LENGTH);
 
 
@@ -62,13 +70,12 @@ public class Telebot {
     TBotProperties props;
 
     @Autowired
-    private StreamMap streams;
+    StreamRpcClient rpcClient;
 
-    private static final  String HELP_CONTENT ="\n" +
-        "/streams - list of not working/flapping streams" +
-        "/help - this help" +
-        "\n" + "/echo [text] - echo [text]" +
-        "\n" + "/ping - echo-reply";
+    //@Autowired
+    //private StreamMap streams;
+
+
 
     @PostConstruct
     private void postConstruct() {
@@ -159,21 +166,21 @@ public class Telebot {
         List<String> linesDown = new ArrayList<>();
         List<String> linesFlap = new ArrayList<>();
 
+        List<Stream> streams = rpcClient.findOffline();
 
-        for (Map.Entry<Long, Stream> entry : streams.entrySet()) {
 
-            Stream stream = entry.getValue();
+        for (Stream stream  : streams) {
 
-            // filter pass only offline or flapping cameras
-            if(stream.isAlive() && !stream.isFlapping()) {
-                continue;
-            }
+//            // filter pass only offline or flapping cameras
+//            if(stream.isAlive() && !stream.isFlapping()) {
+//                continue;
+//            }
 
             String title = stream.getTitle();
             boolean isFlapping = stream.isFlapping();
 
             if(isBlank(title)) {
-                title = stream.getName();
+                title = stream.getName() + "   (" + stream.getServer() + ")";
             }
 
             if(isFlapping) {

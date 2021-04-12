@@ -1,10 +1,10 @@
 package ru.kvanttelecom.tv.streammonitoring.core.entities;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 
 import javax.persistence.*;
 import java.util.ArrayList;

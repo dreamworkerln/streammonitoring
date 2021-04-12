@@ -1,21 +1,16 @@
 package ru.kvanttelecom.tv.streammonitoring.core.services.stream;
 
-import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraphs;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.repositories.StreamRepository;
 import ru.kvanttelecom.tv.streammonitoring.core.services._base.BaseRepoAccessService;
 
-import java.util.*;
-
 /**
- * Stream service, use read/write-through hazelcast embedded cache
+ * Stream database service, use StreamManager to operate Streams on upper level
  */
 @Service
 @Transactional
@@ -25,10 +20,10 @@ public class StreamService extends BaseRepoAccessService<Stream> {
 
     private final StreamRepository repository;
 
-    // mark that all streams was initially imported to repository
-    @Getter
-    @Setter
-    private boolean initialized = false;
+//    // mark that all streams was initially imported to repository
+//    @Getter
+//    @Setter
+//    private boolean initialized = false;
 
     @Autowired
     public StreamService(StreamRepository repository) {
@@ -42,8 +37,18 @@ public class StreamService extends BaseRepoAccessService<Stream> {
 //        return super.findAll();
 //    }
 
-    public Optional<Stream> findByHostnameAndName(String hostname, String streamName) {
-        return repository.findByServerHostnameAndName(hostname, streamName);
+//    /**
+//     * Find by stream.server.hostname And stream.name
+//     */
+//    public Optional<Stream> find(String hostname, String streamName) {
+//        return repository.findByServerHostnameAndName(hostname, streamName);
+//    }
+
+    /**
+     * Delete by stream.server.hostname And stream.name
+     */
+    public void delete(StreamKey streamKey) {
+        repository.deleteByServerHostnameAndName(streamKey.getHostname(), streamKey.getName());
     }
 
     // -------------------------------------------------------------------------------

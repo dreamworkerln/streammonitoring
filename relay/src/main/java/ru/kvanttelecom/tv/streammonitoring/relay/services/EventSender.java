@@ -36,9 +36,13 @@ public class EventSender {
             jobPool.add(null, unused -> {
 
                 try {
-                    restClient.post(props.getProtocol() + receiver, json);
+                    String url = props.getProtocol() + receiver;
+                    log.trace("POST TO: {}", url);
+                    restClient.post(url, json);
                 }
-                catch (Exception ignored) {}
+                catch (Exception skip) {
+                    log.trace("Post error: ", skip); // trace - cause log pollution if error
+                }
 
                 return new JobResult<>();
             });

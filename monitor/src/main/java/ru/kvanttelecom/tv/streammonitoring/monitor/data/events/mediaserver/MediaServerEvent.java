@@ -1,6 +1,7 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.data.events.mediaserver;
 
 import lombok.Getter;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.enums.MediaServerEventType;
 
 
@@ -17,10 +18,10 @@ public class MediaServerEvent {
     private final MediaServerEventType eventType;
 
     @Getter
-    private final String streamName;
+    private final String hostname;
 
     @Getter
-    private final String hostname;
+    private final String name;
 
     @Getter
     private final Instant time;
@@ -28,25 +29,27 @@ public class MediaServerEvent {
     @Getter
     private final String reason;
 
-//    @Getter
-//    private StreamKey streamKey;
+    @Getter
+    private final StreamKey streamKey;
 
-    public MediaServerEvent(MediaServerEventType eventType, String hostname, String streamName, Instant time, String reason) {
+    public MediaServerEvent(MediaServerEventType eventType, String hostname, String name, Instant time, String reason) {
         this.eventType = eventType;
         this.hostname = hostname;
-        this.streamName = streamName;
+        this.name = name;
         this.time = time;
         this.reason = reason;
 
-        //this.streamKey = new StreamKey(serverName, streamName);
+        this.streamKey = new StreamKey(hostname, name);
     }
+
+
 
     @Override
     public String toString() {
         return "MediaServerEvent{" +
             "eventType=" + eventType +
-            ", streamName='" + streamName + '\'' +
             ", serverName='" + hostname + '\'' +
+            ", streamName='" + name + '\'' +
             ", time=" + time +
             ", reason='" + reason + '\'' +
             '}';

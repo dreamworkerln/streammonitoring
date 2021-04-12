@@ -10,6 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StreamState {
 
+    private static final int STREAM_MAX_LEVEL = 10;
+    private static final int STREAM_THRESHOLD_LEVEL = (int)(STREAM_MAX_LEVEL * 0.7);
+
+    private static final Double STREAM_FLAPPING_MIN_RATE = 1./600; // 1 раз в 10 мин
+
+
     // Порог минимального числа изменений update.alive
     // Для начала вычисления частоты изменения update.alive стрима
     //public static final int UPDATE_ALIVE_CHANGE_COUNT_MIN = 10;
@@ -20,13 +26,91 @@ public class StreamState {
     // время последнего вычисления LevelChangeRps
     //private final AtomicReference<Instant> lastUpdateAliveCalcTime = new AtomicReference<>(Instant.now());
 
-    @Getter
-    @Setter
     private int level = 0;
 
     @Getter
     @Setter
     private boolean alive = false;
+
+    @Getter
+    private final StreamKey streamKey;
+
+
+    public StreamState(StreamKey streamKey) {
+        this.streamKey = streamKey;
+    }
+
+    @Override
+    public String toString() {
+        return "StreamState{" +
+            "streamKey=" + streamKey +
+            ", alive=" + alive +
+            '}';
+    }
+
+    //
+//    /**
+//     * Check if stream status has been changed (going online/offline/flapping)
+//     */
+//    public Set<StreamEventType> calculateStatus(boolean updateAlive) {
+//
+//        Set<StreamEventType> result = new HashSet<>();
+//
+//        if(updateAlive) {
+//            result.add(StreamEventType.ONLINE);
+//        }
+//        else {
+//            result.add(StreamEventType.OFFLINE);
+//        }
+//        this.setAlive(updateAlive);
+//
+//        return result;
+//
+////
+////        // ToDo: Flapping not calculated yet
+////
+////        // Calculating stream flapping -------------------------------
+////
+////        //Double flappingRate = state.calculateUpdateAliveFreq(update);
+////
+////        //log.info("Частота изменения StreamUpdate.alive: {}", updateAliveFreq);
+////
+//////        if(flappingRate != null) {
+//////            log.info("ИЗМЕНЕНИЕ: Частота изменения StreamUpdate.alive: {}", flappingRate);
+//////
+//////            if(!stream.isFlapping() && flappingRate > STREAM_FLAPPING_MIN_RATE) {
+//////                stream.setFlapping(true);
+//////                result.add(StreamEventType.START_FLAPPING);
+//////            }
+//////
+//////            if(stream.isFlapping() && flappingRate < STREAM_FLAPPING_MIN_RATE) {
+//////                stream.setFlapping(false);
+//////                result.add(StreamEventType.STOP_FLAPPING);
+//////            }
+//////        }
+////
+////        // Calculating stream online/offline changing -------------
+////        int step = updateAlive ? +1 : -1;
+////
+////
+////        // update stream.level
+////        if(Math.abs(level + step) <= STREAM_MAX_LEVEL) {
+////            level += step;
+////        }
+////
+////        if(alive && level < -STREAM_THRESHOLD_LEVEL) {
+////            alive = false;
+////            result.add(StreamEventType.OFFLINE);
+////        }
+////
+////        if(!alive && level > +STREAM_THRESHOLD_LEVEL) {
+////            alive = true;
+////            result.add(StreamEventType.ONLINE);
+////        }
+////        return result;
+//    }
+
+
 
     // Значение StreamUpdate.alive при последнем обновлении состояния стрима
 //    @Getter

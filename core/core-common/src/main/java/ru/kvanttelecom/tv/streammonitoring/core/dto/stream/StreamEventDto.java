@@ -14,7 +14,8 @@ public class StreamEventDto {
     /**
      * Stream id
      */
-    long streamId;
+    String hostname;
+    String name;
 
     /**
      * Event type
@@ -23,8 +24,9 @@ public class StreamEventDto {
 
     public StreamEventDto() {}
 
-    public StreamEventDto(long streamId, Set<StreamEventType> eventSet) {
-        this.streamId = streamId;
+    public StreamEventDto(String hostname, String name, Set<StreamEventType> eventSet) {
+        this.hostname = hostname;
+        this.name = name;
         this.eventSet = eventSet;
     }
 

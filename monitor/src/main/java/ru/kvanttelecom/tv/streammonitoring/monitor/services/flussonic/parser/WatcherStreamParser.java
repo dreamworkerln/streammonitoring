@@ -1,23 +1,18 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.parser;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Address;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Point;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
-import ru.kvanttelecom.tv.streammonitoring.core.services.server.ServerService;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static ru.dreamworkerln.spring.utils.common.Utils.throwIfNull;
 
@@ -35,14 +30,11 @@ public class WatcherStreamParser {
             Stream stream = getStream(obj, servers);
             result.add(stream);
         }
-
-
         return result;
     }
 
     public Optional<Stream> getOne(String json, Map<String, Server> servers) {
 
-        Optional<Stream> result = Optional.empty();
         JSONObject obj = new JSONObject(json);
         return Optional.of(getStream(obj, servers));
     }
@@ -72,7 +64,7 @@ public class WatcherStreamParser {
         throwIfNull(server, "Server " + domainName + "not found");
 
         Stream stream = new Stream(server, name, title);
-        stream.setInitialStateAlive(alive);
+        stream.setInitialAliveInternal(alive);
 
 
         String[] arr = coordinatesString.split(" ");

@@ -2,10 +2,8 @@ package ru.kvanttelecom.tv.streammonitoring.core.repositories;
 
 
 import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.lang.NonNullApi;
 import org.springframework.stereotype.Repository;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.repositories._base.CustomRepository;
 
 
@@ -21,6 +19,14 @@ public interface StreamRepository extends CustomRepository<Stream, Long> {
     @Nonnull
     @EntityGraph(value = Stream.STREAM_ADDRESS)
     List<Stream> findAll();
+
+    void deleteByServerHostnameAndName(String hostname, String streamName);
+
+
+//    @Query("DELETE FROM Stream st " +
+//        "WHERE st.name = :#{#key.name} AND st.server.id in (FROM Server s  :#{#key.hostname})")
+//    void deleteByServerHostnameAndName(@Param("key") StreamKey key);
+
 }
 
 

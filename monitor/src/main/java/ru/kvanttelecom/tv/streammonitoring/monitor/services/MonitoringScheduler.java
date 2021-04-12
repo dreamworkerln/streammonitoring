@@ -4,8 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.StreamImporter;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamState;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.StreamManager;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamStateService;
+
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 /**
@@ -15,11 +21,12 @@ import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.
 @Slf4j
 public class MonitoringScheduler {
 
-    @Autowired
-    private MonitorProperties props;
 
     @Autowired
-    private StreamImporter importer;
+    private StreamManager manager;
+
+    @Autowired
+    private StreamStateService stateService;
 
     /**
      * Watcher import scheduler
@@ -29,9 +36,9 @@ public class MonitoringScheduler {
         initialDelayString = "#{3 * 1000}")
     private void updateStreams() {
 
-        log.trace("MONITOR - UPDATE STREAMS ==============================================");
-
-        importer.importAll();
+        log.trace("Monitor: update streams");
+        //log.trace("MONITOR - UPDATE STREAMS ==============================================");
+        manager.importAll();
     }
 
 

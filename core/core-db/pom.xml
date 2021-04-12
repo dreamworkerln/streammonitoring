@@ -47,12 +47,28 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-ehcache -->
+        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-jcache -->
         <dependency>
             <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-ehcache</artifactId>
+            <artifactId>hibernate-jcache</artifactId>
             <version>5.4.30.Final</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.ehcache/ehcache -->
+        <dependency>
+            <groupId>org.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+            <version>3.8.1</version>
+        </dependency>
+
+
+
+        <!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.hibernate/hibernate-ehcache &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.hibernate</groupId>-->
+<!--            <artifactId>hibernate-ehcache</artifactId>-->
+<!--            <version>5.4.30.Final</version>-->
+<!--        </dependency>-->
 
 
 <!--        &lt;!&ndash; https://mvnrepository.com/artifact/com.hazelcast/hazelcast &ndash;&gt;-->

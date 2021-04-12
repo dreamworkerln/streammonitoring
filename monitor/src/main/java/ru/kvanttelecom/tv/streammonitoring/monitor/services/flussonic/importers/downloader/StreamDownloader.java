@@ -1,6 +1,7 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.downloader;
 
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,5 +15,5 @@ public interface StreamDownloader {
     /**
      * Download stream by name
      */
-    Optional<Stream> getOne(String hostname, String name);
+    Optional<Stream> getOne(StreamKey streamKey);
 }

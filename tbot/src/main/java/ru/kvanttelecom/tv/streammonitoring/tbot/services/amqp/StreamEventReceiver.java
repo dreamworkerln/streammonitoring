@@ -19,19 +19,19 @@ public class StreamEventReceiver {
 
 
     
-    @RabbitListener(queues = AmqpId.queue.stream.events.update)
-    private void receive(List<StreamEventDto> update) {
-
-        try {
-            log.trace("STREAM EVENT: {}", update);
-            synchronizer.syncFromEvent(update);
-
-        }
-        catch(Exception rethrow) {
-            log.error("Synchronization fromEvent error: ", rethrow);
-            throw rethrow;
-        }
-    }
+//    @RabbitListener(queues = AmqpId.queue.stream.events.update)
+//    private void receive(List<StreamEventDto> update) {
+//
+//        try {
+//            log.trace("STREAM EVENT: {}", update);
+//            synchronizer.syncFromEvent(update);
+//
+//        }
+//        catch(Exception rethrow) {
+//            log.error("Synchronization fromEvent error: ", rethrow);
+//            throw rethrow;
+//        }
+//    }
 
 }
 

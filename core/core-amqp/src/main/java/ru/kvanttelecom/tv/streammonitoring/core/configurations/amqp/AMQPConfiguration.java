@@ -81,23 +81,23 @@ public class AMQPConfiguration {
 //    }
 //
 //
-//    // RPC ---------------------------------
-//
-//    // FindAll
-//    @Bean(AmqpId.queue.stream.rpc.findAll)
-//    public Queue queueStreamRpcFindAll() {
-//        return queueStreamRpcFindAll;
-//    }
-//
-//    @Bean(AmqpId.exchanger.stream.rpc.findAll)
-//    public DirectExchange exchangeStreamRpcFindAll() {
-//        return exchangeStreamRpcFindAll;
-//    }
-//
-//    @Bean(AmqpId.binding.stream.rpc.findAll)
-//    public Binding bindingStreamRpcFindAll() {
-//        return bindingStreamRpcFindAll;
-//    }
+    // RPC ---------------------------------
+
+    // FindAll
+    @Bean(AmqpId.queue.stream.rpc.find)
+    public Queue queueStreamRpcFindAll() {
+        return queueStreamRpcFind;
+    }
+
+    @Bean(AmqpId.exchanger.stream.rpc.find)
+    public DirectExchange exchangeStreamRpcFindAll() {
+        return exchangeStreamRpcFind;
+    }
+
+    @Bean(AmqpId.binding.stream.rpc.find)
+    public Binding bindingStreamRpcFindAll() {
+        return bindingStreamRpcFind;
+    }
 //
 //
 //    // FindByKeys

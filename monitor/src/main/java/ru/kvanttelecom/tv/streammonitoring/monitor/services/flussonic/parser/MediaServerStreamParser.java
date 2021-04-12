@@ -5,7 +5,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 
 
 import java.util.ArrayList;
@@ -31,12 +31,13 @@ public class MediaServerStreamParser {
     }
 
     public Optional<Stream> getOne(String json, Server server) {
-
         JSONObject obj = new JSONObject(json);
         Stream stream = getStream(obj.getJSONObject("value"), server);
         return Optional.of(stream);
     }
 
+
+    // --------------------------------------------------------------
 
     private Stream getStream(JSONObject obj, Server server) {
 
@@ -57,8 +58,8 @@ public class MediaServerStreamParser {
 
         String title = options.optString("title", null);
 
-        result =  new Stream(server, name, title);
-        result.setInitialStateAlive(alive);
+        result = new Stream(server, name, title);
+        result.setInitialAliveInternal(alive);
 
         return result;
     }

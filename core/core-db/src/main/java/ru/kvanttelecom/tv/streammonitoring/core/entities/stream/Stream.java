@@ -1,21 +1,25 @@
-package ru.kvanttelecom.tv.streammonitoring.core.entities;
+package ru.kvanttelecom.tv.streammonitoring.core.entities.stream;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.springframework.util.Assert;
 import ru.dreamworkerln.spring.utils.common.annotations.Default;
-import ru.kvanttelecom.tv.streammonitoring.core.data.StreamState;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Address;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Client;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**
  * Stream
  */
 @Entity
-
+@EntityListeners(StreamPersistListener.class)
 @Table(
     name = "stream",
     indexes = {
@@ -46,6 +50,7 @@ public class Stream extends AbstractEntity {
 
     @ManyToOne
     @JoinColumn(name="server_id")
+    @NotNull
     private Server server;
 
     @ManyToOne(cascade = CascadeType.ALL)
@@ -59,11 +64,16 @@ public class Stream extends AbstractEntity {
     //@Embedded
     //private Point coordinates;
 
-
-    // was stream alive in the moment when it was imported to the system - for internal use only
-    // To get current stream status use StreamStatusService
+    /**
+     * Was stream alive on the moment of importing from mediaserver/watcher - for internal use only
+     * To get current stream status use StreamStatusService
+     */
     @Transient
-    private boolean initialStateAlive;
+    private boolean initialAliveInternal;
+
+    @Transient
+    @Setter(AccessLevel.NONE)
+    private StreamKey streamKey;
 
     // Is stream flapping
     //private boolean flapping;
@@ -79,6 +89,13 @@ public class Stream extends AbstractEntity {
 //    private StreamKey streamKey;
 
 
+    public static StreamKey generateStreamKey(String hostname, String name) {
+        Assert.notNull(hostname, "hostname == null");
+        Assert.notNull(name, "name == null");
+        return new StreamKey(hostname, name);
+    }
+
+
     protected Stream() {}
 
     @Default
@@ -86,18 +103,29 @@ public class Stream extends AbstractEntity {
         this.server = server;
         this.name = name;
         this.title = title;
+
+        initialize();
     }
 
-    public String getStreamKey() {
+    void initialize() {
         Assert.notNull(server, "Stream.server == null");
-        return server.getHostname() + "." + name;
+        streamKey = generateStreamKey(server.getHostname(), name);
     }
+
+//    public StreamKey getStreamKey() {
+//        Assert.notNull(server, "Stream.server == null");
+//        return Stream.getStreamKey(server.getHostname(), name);
+//    }
 
     @Override
     public String toString() {
+
+        String srv = server == null ? "" : server.getHostname();
+
         return "Stream{" +
             "name='" + name + '\'' +
             ", title='" + title + '\'' +
+            ", server='" + srv + '\'' +
             '}';
     }
 

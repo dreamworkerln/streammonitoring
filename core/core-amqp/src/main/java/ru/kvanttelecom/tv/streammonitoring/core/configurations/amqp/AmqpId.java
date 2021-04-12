@@ -12,12 +12,12 @@ public class AmqpId {
 
             // Events
             public static class events {
-                public static final String update = "stream.events.update";
+                public static final String update = "queue.stream.events.update";
             }
 
             // RPC
             public static class rpc {
-                public static final String find =    "stream.rpc.find";
+                public static final String find =   "queue.stream.rpc.find";
             }
         }
     }
@@ -28,13 +28,13 @@ public class AmqpId {
 
             // Events
             public static class events {
-                public static final String update = "stream.events.update";
+                public static final String update = "exchanger.stream.events.update";
             }
 
 
             // RPC
             public static class rpc {
-                public static final String find =    "stream.rpc.find";
+                public static final String find =   "exchanger.stream.rpc.find";
             }
         }
     }
@@ -47,12 +47,12 @@ public class AmqpId {
 
             // events
             public static class events {
-                public static final String update = "stream.events.update";
+                public static final String update = "binding.stream.events.update";
             }
 
             // RPC
             public static class rpc {
-                public static final String find =    "stream.rpc.findAll";
+                public static final String find =   "binding.stream.rpc.find";
             }
         }
     }
