@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 
@@ -16,32 +17,30 @@ import java.util.Optional;
 @Slf4j
 public class MediaServerStreamParser {
 
-    public List<Stream> getArray(String json, Server server) {
+    public List<StreamDto> getArray(String json, String hostname) {
 
-        List<Stream> result = new ArrayList<>();
+        List<StreamDto> result = new ArrayList<>();
 
         JSONArray list = new JSONArray(json);
         for (int i = 0; i < list.length(); i++) {
 
             JSONObject obj = list.getJSONObject(i).getJSONObject("value");
-            Stream stream = getStream(obj, server);
+            StreamDto stream = getStream(obj, hostname);
             result.add(stream);
         }
         return result;
     }
 
-    public Optional<Stream> getOne(String json, Server server) {
+    public Optional<StreamDto> getOne(String json, String hostname) {
         JSONObject obj = new JSONObject(json);
-        Stream stream = getStream(obj.getJSONObject("value"), server);
+        StreamDto stream = getStream(obj.getJSONObject("value"), hostname);
         return Optional.of(stream);
     }
 
 
     // --------------------------------------------------------------
 
-    private Stream getStream(JSONObject obj, Server server) {
-
-        Stream result;
+    private StreamDto getStream(JSONObject obj, String hostname) {
 
         String name = obj.getString("name");
         //log.trace("NAME: {}", name);
@@ -58,8 +57,15 @@ public class MediaServerStreamParser {
 
         String title = options.optString("title", null);
 
-        result = new Stream(server, name, title);
-        result.setInitialAliveInternal(alive);
+        StreamDto result = new StreamDto();
+        result.setName(name);
+        result.setHostname(hostname);
+        result.setTitle(title);
+        //result.setComment(comment);
+        //result.setPostalAddress(postalAddress);
+        //result.setCoordinates(coordinatesString);
+        //result.setClient(null);
+        result.setAlive(alive);
 
         return result;
     }

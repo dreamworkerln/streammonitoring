@@ -2,12 +2,16 @@ package ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kvanttelecom.tv.streammonitoring.core.mappers.stream.StreamMapper;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamEventDto;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
-import ru.kvanttelecom.tv.streammonitoring.core.services.stream.StreamService;
+import ru.kvanttelecom.tv.streammonitoring.core.services.cachingservices.StreamService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamStateService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.downloader.StreamDownloader;
+import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -28,16 +32,18 @@ import static ru.dreamworkerln.spring.utils.common.SpringBeanUtilsEx.copyPropert
 @Slf4j
 public class StreamManager {
 
+    private final StreamMapper streamMapper;
     private final StreamService streamService;
     private final MonitorProperties props;
     private final StreamDownloader streamDownloader;
     private final StreamStateService streamStateService;
 
-    public StreamManager(StreamService streamService,
+    public StreamManager(StreamMapper streamMapper, StreamService streamService,
                          StreamStateService streamStateService,
                          StreamDownloader streamDownloader,
                          MonitorProperties props) {
 
+        this.streamMapper = streamMapper;
         this.streamService = streamService;
         this.streamStateService = streamStateService;
         this.streamDownloader = streamDownloader;
@@ -49,30 +55,29 @@ public class StreamManager {
      */
     public synchronized void importAll() {
 
-        boolean haveStreams;
 
-        // Reload streams
+        //  Download dto stream list
+        List<StreamDto> streamDtoList = streamDownloader.getAll();
 
-        // Get new streams
-        // <StreamKey,Stream>
-        Map<StreamKey, Stream> importStreams = streamDownloader.getAll().stream()
+        // have ids == null
+        List<Stream> convertedStreamList = streamMapper.toEntityList(streamDtoList);
+
+        Map<StreamKey, Stream> importStreams = convertedStreamList.stream()
             .collect(Collectors.toMap(Stream::getStreamKey, Function.identity()));
 
         // Checking for duplicate names(strict)/titles/addresses
-        // only inside importStreams
         checkStreamNameDuplicates(importStreams);
-
-
 
         // Get all local streams (from DB)
         // <StreamKey,Stream>
         Map<StreamKey,Stream> streams = streamService.findAll().stream()
             .collect(Collectors.toMap(Stream::getStreamKey, Function.identity()));
 
-        //haveStreams = streams.size() > 0;
+        boolean firstRun = streams.size() == 0;
 
-        // Only synchronize stream "permanent" data,
-        // stream status doesn't get in count here
+
+        // Synchronize Streams -> mirroring import to local DB
+
 
         // Calculate streams to create, delete, update
         List<Stream> toCreate = new ArrayList<>();
@@ -82,92 +87,190 @@ public class StreamManager {
 
         for (Map.Entry<StreamKey, Stream> entry : streams.entrySet()) {
 
-            Stream stream = streams.get(entry.getKey());
-            Stream watcherStream = importStreams.get(entry.getKey());
+            Stream local = streams.get(entry.getKey());
+            Stream update = importStreams.get(entry.getKey());
 
             // to delete
-            if(watcherStream == null) {
+            if(update == null) {
                 toDelete.add(entry.getValue());
             }
             // to update
             else {
-                if(!watcherStream.equals(stream)) {
-                    copyPropertiesExcludeNull(watcherStream, stream);
-                    toUpdate.add(stream);
+                if(!update.equals(local)) {
+                    copyPropertiesExcludeNull(update, local);
+                    toUpdate.add(local);
                 }
             }
         }
 
         // to create
         for (Map.Entry<StreamKey, Stream> entry : importStreams.entrySet()) {
-            Stream stream = streams.get(entry.getKey());
-            Stream watcherStream = importStreams.get(entry.getKey());
+            Stream local = streams.get(entry.getKey());
+            Stream update = importStreams.get(entry.getKey());
 
-            if(stream == null) {
-                toCreate.add(watcherStream);
+            if(local == null) {
+                toCreate.add(update);
             }
         }
 
-        //haveStreams = haveStreams || toCreate.size() > 0;
 
         // guard
         streams = null;
 
-        // Streams
+        // -----------------------------------------------------------------------------------
+        // Streams SYNC ----------------------------------------------------------------------
+        // -----------------------------------------------------------------------------------
         streamService.deleteAll(toDelete); // remove locally deprecated
         streamService.saveAll(toCreate);   // add new
         streamService.saveAll(toUpdate);   // update existing
+        // -----------------------------------------------------------------------------------
 
-//        // Set StreamService initialization status
-//        if (haveStreams && !streamService.isInitialized()) {
-//            streamService.setInitialized(true);
-//        }
 
-        // StreamStatus
-        toDelete.forEach(streamStateService::delete); // remove locally deprecated
-        toCreate.forEach(streamStateService::put);    // add new
 
-        // update events will send by flussonic notify events
-        // and then will be received and registered in controller MediaServerEventsReceiver
-        // but we should synchronize stream status from mediaserver HTTP API "get stream list"
-        // in case we miss update event
+        // -----------------------------------------------------------------------------------
+        // StreamState SYNC ------------------------------------------------------------------
+        // -----------------------------------------------------------------------------------
+        Map<StreamKey, Boolean> updateStates = streamDtoList.stream()
+            .collect(Collectors.toMap(dto -> Stream.generateStreamKey(dto.getHostname(), dto.getName()), StreamDto::isAlive));
+
+        toDelete.forEach(s -> streamStateService.delete(s.getStreamKey())); // remove locally deprecated
+        toCreate.forEach(s -> streamStateService.put(s.getStreamKey(), updateStates.get(s.getStreamKey()))); // add new
+
+        // update streamStates
+        for (Map.Entry<StreamKey, Boolean> entry : updateStates.entrySet()) {
+            boolean updateAlive = entry.getValue();
+            streamStateService.update(entry.getKey(), updateAlive);
+        }
+        // -----------------------------------------------------------------------------------
+
+
+
+        // -----------------------------------------------------------------------------------
+        // Cooking stream updates
+        // -----------------------------------------------------------------------------------
+
+
+        // do not generate events on application initialization
+        if(!firstRun) {
+            Map<StreamKey,StreamEventDto> streamEvents = new HashMap<>();
+
+            fillStreamEvents(toDelete, streamEvents);
+            fillStreamEvents(toCreate, streamEvents);
+            fillStreamEvents(toUpdate, streamEvents);
+
+            messageSink(new ArrayList<>(streamEvents.values()));
+        }
+        // -------------------------------------------------------------------------------------
     }
 
 
     /**
      * Synchronize one local stream with remote source
      */
-    public synchronized void importOne(StreamKey streamKey) {
+    public synchronized void importOne(StreamKey key) {
 
-        // download new stream
-        Optional<Stream> oStream = streamDownloader.getOne(streamKey);
+        // download new stream information
+        Optional<StreamDto> oDto = streamDownloader.getOne(key);
 
-        // if downloaded
-        oStream.ifPresent(s -> {
+        // if new stream has been downloaded
+        oDto.ifPresent(dto -> {
 
-            // delete old
-            streamService.delete(s);      // remove from DB
-            streamStateService.delete(s); // remove from StreamStatus
+            Stream local = streamService.findByStreamKey(key).orElse(null);
+            Stream update = streamMapper.toEntity(dto);
 
-            // replace to new
-            streamService.save(s);      // add to DB
-            streamStateService.put(s);  // add to StreamStatus
+            if(local != null) {
+                copyPropertiesExcludeNull(update, local);
+                streamService.save(local);
+            }
+            else {
+                streamService.save(update);
+
+            }
+            streamStateService.put(key, dto.isAlive());
+
+            // Cooking stream updates -----------------------------------------------
+            List<StreamEventDto> events = Collections.singletonList(new StreamEventDto(key, Set.of(StreamEventType.CREATED)));
+            messageSink(events);
         });
+
     }
 
 
     /**
      *  Delete one local stream
      */
-    public synchronized void delete(StreamKey streamKey) {
-        streamService.delete(streamKey);      // remove from DB
-        streamStateService.delete(streamKey);              // remove from StreamStatus
+    public synchronized void delete(StreamKey key) {
+
+
+        Optional<Stream> oStream = streamService.findByStreamKey(key);
+
+        if(oStream.isPresent()) {
+            streamService.delete(key);       // remove from DB
+            streamStateService.delete(key);  // remove from StreamStatus
+
+            List<StreamEventDto> events = Collections.singletonList(new StreamEventDto(key, Set.of(StreamEventType.DELETED)));
+            messageSink(events);
+        }
+    }
+
+
+    /**
+     * Update status of Stream
+     */
+    public void updateStatus(StreamKey key, boolean alive) {
+
+        Set<StreamEventType> types = streamStateService.update(key, alive);
+        // если произошли(были сгенерированы) какие-либо события
+        if (types.size() > 0) {
+            List<StreamEventDto> events = Collections.singletonList(new StreamEventDto(key,types));
+            messageSink(events);
+        }
+    }
+
+
+    // ==================================================================================
+
+
+    /**
+     * Receive here all calculated updates about streams
+     */
+    private void messageSink(List<StreamEventDto> events) {
+
+        if(events.size() == 0) {
+            return;
+        }
+
+        // DEBUGGING ------------------------------------------------
+        StreamKey oprKey = new StreamKey("t8", "camass-275fe84429");
+        Optional<Stream> oS = streamService.findByStreamKey(oprKey);
+        if(oS.isPresent()) {
+            Stream s = oS.get();
+            log.info("\n\nCAM : {}\n\n", streamStateService.get(oprKey));
+        }
+        else {
+            log.info("\n\nCAM not found\n\n");
+        }
+        // ---------------------------------------------------------------
+
+
+        //log.debug("{}", events);
     }
 
 
 
+    private void fillStreamEvents(List<Stream> toDo, Map<StreamKey,StreamEventDto> events) {
 
-    // ------------------------------------------------------------------------------
+        StreamEventType currentType = StreamEventType.CREATED;
+        for (Stream stream : toDo) {
+            StreamKey key = stream.getStreamKey();
+            if(!events.containsKey(key)) {
+                events.put(key, new StreamEventDto(key, Set.of(currentType)));
+            }
+            else {
+                events.get(key).getEventSet().add(currentType);
+            }
+        }
+    }
 
 
     private static class EntityIndex<K,V> {
@@ -190,7 +293,7 @@ public class StreamManager {
             if(key == null) {
                 return;
             }
-            
+
             V exists = index.get(key);
             if(exists != null) {
                 formatter.accept(exists, value);

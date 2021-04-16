@@ -1,0 +1,8 @@
+package ru.kvanttelecom.tv.streammonitoring.monitor.services.stream;
+
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class StreamStateServiceMiniConfig {
+
+}

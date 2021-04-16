@@ -8,7 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
 import ru.dreamworkerln.spring.utils.common.rest.RestClientBuilder;
-import ru.kvanttelecom.tv.streammonitoring.core.services.stream.StreamService;
+import ru.kvanttelecom.tv.streammonitoring.core.mappers.stream.StreamMapper;
+import ru.kvanttelecom.tv.streammonitoring.core.services.cachingservices.StreamService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamStateService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.StreamManager;
@@ -65,16 +66,18 @@ public class SpringBeanConfigurations {
     }
 
     @Bean
-    public StreamManager streamImporter(StreamService streamService,
-                                        StreamStateService streamStateService,
-                                        StreamDownloader watcherStreamDownloader,
-                                        StreamDownloader mediaserverStreamDownloader) {
+    public StreamManager streamImporter(
+        StreamMapper streamMapper,
+        StreamService streamService,
+        StreamStateService streamStateService,
+        StreamDownloader watcherStreamDownloader,
+        StreamDownloader mediaserverStreamDownloader) {
 
         if(props.getWatcher().isUse()) {
-            return new StreamManager(streamService, streamStateService, watcherStreamDownloader, props);
+            return new StreamManager(streamMapper, streamService, streamStateService, watcherStreamDownloader, props);
         }
         else {
-            return new StreamManager(streamService, streamStateService, mediaserverStreamDownloader, props);
+            return new StreamManager(streamMapper, streamService, streamStateService, mediaserverStreamDownloader, props);
         }
     }
 }

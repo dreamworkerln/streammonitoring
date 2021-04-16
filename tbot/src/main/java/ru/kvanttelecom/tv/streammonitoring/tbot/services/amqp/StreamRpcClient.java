@@ -10,7 +10,7 @@ import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.AmqpId;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArAbstract;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArStreamFindAll;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArStreamFindOffline;
-import ru.kvanttelecom.tv.streammonitoring.tbot.entities.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -56,11 +56,11 @@ public class StreamRpcClient {
 //    }
 
 
-    public List<Stream> findOffline() {
+    public List<StreamDto> findOffline() {
 
 
 
-        List<Stream> result;
+        List<StreamDto> result;
 
         log.trace("RPC REQUEST <FIND OFFLINE STREAMS>");
 
@@ -69,20 +69,13 @@ public class StreamRpcClient {
 
         ArStreamFindOffline request = new ArStreamFindOffline();
 
-        ParameterizedTypeReference<List<String>> typeRef = new ParameterizedTypeReference<>() {};
+        ParameterizedTypeReference<List<StreamDto>> typeRef = new ParameterizedTypeReference<>() {};
 
-        List<String> tmp = template.convertSendAndReceiveAsType(exchanger, routing, request, typeRef);
+        result = template.convertSendAndReceiveAsType(exchanger, routing, request, typeRef);
 
-        if(tmp == null) {
+        if(result == null) {
             throw new RuntimeException("RPC <FIND OFFLINE STREAMS>: NO RESPONSE");
         }
-
-        result = tmp.stream()
-            .map(s -> {
-                String[] ss = s.split("\\.", 2);
-                return new Stream(ss[0], ss[1], false);
-            })
-            .collect(Collectors.toList());
         log.trace("RPC RESPONSE: {}", result);
         return result;
     }

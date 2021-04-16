@@ -44,4 +44,12 @@ public class Address extends AbstractEntity {
     public int hashCode() {
         return Objects.hash(coordinates, postAddress);
     }
+
+    @Override
+    public String toString() {
+        return "Address{" +
+            "postAddress=" + postAddress +
+            ", coordinates='" + coordinates + '\'' +
+            '}';
+    }
 }

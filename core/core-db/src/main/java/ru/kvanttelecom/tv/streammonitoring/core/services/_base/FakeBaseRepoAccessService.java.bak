@@ -1,0 +1,19 @@
+package ru.kvanttelecom.tv.streammonitoring.core.services._base;
+
+import org.springframework.stereotype.Component;
+import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
+import ru.kvanttelecom.tv.streammonitoring.core.repositories._base.CustomRepository;
+import ru.kvanttelecom.tv.streammonitoring.core.repositories._base.RepositoryWithEntityManager;
+
+public class FakeBaseRepoAccessService<T extends AbstractEntity> extends BaseRepoAccessService<T> {
+
+    public static <T extends AbstractEntity> FakeBaseRepoAccessService<T> get() {
+        CustomRepository<T, Long> test = new RepositoryWithEntityManager<>(null, null);
+        return new FakeBaseRepoAccessService<>(test);
+    }
+    
+
+    protected FakeBaseRepoAccessService(CustomRepository<T, Long> baseRepository) {
+        super(baseRepository);
+    }
+}

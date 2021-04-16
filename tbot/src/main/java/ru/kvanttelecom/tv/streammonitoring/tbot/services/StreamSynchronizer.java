@@ -3,21 +3,9 @@ package ru.kvanttelecom.tv.streammonitoring.tbot.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp.StreamRpcClient;
-import ru.kvanttelecom.tv.streammonitoring.tbot.entities.Stream;
-import ru.kvanttelecom.tv.streammonitoring.tbot.beans.StreamMap;
 import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.TBotProperties;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.telegram.Telebot;
-import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamEventDto;
-import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
-
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import static ru.dreamworkerln.spring.utils.common.StringUtils.notBlank;
 
 /**
  * Synchronize streams with monitor
@@ -25,9 +13,6 @@ import static ru.dreamworkerln.spring.utils.common.StringUtils.notBlank;
 @Service
 @Slf4j
 public class StreamSynchronizer {
-
-    @Autowired
-    private StreamMap streams;
 
     @Autowired
     private StreamRpcClient streamRpcClient;

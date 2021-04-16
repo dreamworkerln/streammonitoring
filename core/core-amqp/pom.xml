@@ -15,6 +15,13 @@
     <artifactId>core-amqp</artifactId>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+
         <!--module utils -->
         <dependency>
             <groupId>ru.kvant-telecom.tv.streammonitoring</groupId>

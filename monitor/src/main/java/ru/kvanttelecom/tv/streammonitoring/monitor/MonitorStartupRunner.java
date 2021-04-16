@@ -3,14 +3,11 @@ package ru.kvanttelecom.tv.streammonitoring.monitor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
-import ru.kvanttelecom.tv.streammonitoring.core.services.server.ServerService;
+import ru.kvanttelecom.tv.streammonitoring.core.services.cachingservices.ServerService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.utils.startuprunner.BaseStartupRunner;
-
-import java.util.List;
 
 @Component
 @Slf4j

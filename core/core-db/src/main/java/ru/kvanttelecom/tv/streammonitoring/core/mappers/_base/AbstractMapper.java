@@ -1,4 +1,4 @@
-package ru.kvanttelecom.tv.streammonitoring.core.converters._base;
+package ru.kvanttelecom.tv.streammonitoring.core.mappers._base;
 
 
 import org.mapstruct.*;
@@ -10,25 +10,11 @@ import ru.kvanttelecom.tv.streammonitoring.core.services._base.BaseRepoAccessSer
 import java.util.List;
 
 
-@MapperConfig(unmappedTargetPolicy = ReportingPolicy.ERROR)
+@MapperConfig(/*componentModel = "spring",*/ unmappedTargetPolicy = ReportingPolicy.ERROR)
 public abstract class AbstractMapper<E extends AbstractEntity, D extends AbstractDto> {
 
     protected BaseRepoAccessService<E> baseRepoAccessService;
 
-//    protected Constructor<E,D> constructor;
-
-//    public void setBaseRepoAccessService(BaseRepoAccessService<E> baseRepoAccessService) {
-//        this.baseRepoAccessService = baseRepoAccessService;
-//    }
-
-//    /**
-//     * Set id for Entity  //-created, -created
-//     */
-//    public void idMap(AbstractDto source,
-//                      AbstractEntity target) {
-//
-//        Utils.fieldSetter("id", target, source.getId());
-//    }
 
     /**
      * Merge Entity converted from DTO(target) to entity loaded from database(result),
@@ -40,29 +26,35 @@ public abstract class AbstractMapper<E extends AbstractEntity, D extends Abstrac
      */
     public E merge(D source, E target) {
 
-        // assign to result entity, converted from dto by mapstruct
+        // assign to result converted source dto
         E result = target;
 
-        // source.getId() - cause entity.id has protected setter and target.id always be null
-        // Update existing entity
+        // two scenarios:
+        // 1. source.id != null (source previously was borrowed from DB) - need to UPDATE existing entity in DB
+
+        // entity.id has protected setter -> target.id always be null
+        // (it's impossible to convert dto.id to entity.id)
+
+        // Update existing entity in DB
         if(source.getId() != null) {
-            //result = baseRepoAccessService.findByIdEager(source.getId());  // Загружаем сущность целиком, без lazy initialization
+            // load result from DB (result.id will be != null)
             result = baseRepoAccessService.findById(source.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Entity by id: " + source.getId() + " not found"));
-            // Merge entity from DTO to entity loaded from DB
+
+            // Merge target to result
+            // Copy non-null fields from target to result
+            SpringBeanUtilsEx.copyPropertiesExcludeNull(target, result);
+            // So got in result fields updated from target(source), and result have id
+
+            // Next need to validate result and so on ...
         }
 
-        
-        SpringBeanUtilsEx.copyPropertiesExcludeNull(target, result);
+        // 2. source.id == null (target.id also == null) - need to persist new entity
         return result;
     }
 
     public abstract E toEntity(D dto);
 
-    //@Mapping(target = "{created,updated,enabled}", ignore = true)
-//    @Mapping(target = "enabled", ignore = true)
-//    @Mapping(target = "created", ignore = true)
-//    @Mapping(target = "updated", ignore = true)
     public abstract D toDto(E entity);
 
     public abstract List<D> toDtoList(List<E> entityList);
@@ -71,10 +63,10 @@ public abstract class AbstractMapper<E extends AbstractEntity, D extends Abstrac
 
 
 
-    @AfterMapping
-    public E afterMapping(D source, @MappingTarget E target) {
-        return merge(source, target);
-    }
+//    @AfterMapping
+//    public E afterMapping(D source, @MappingTarget E target) {
+//        return merge(source, target);
+//    }
 
 //    // ====================================================
 //

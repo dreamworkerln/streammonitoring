@@ -7,10 +7,16 @@ import org.springframework.stereotype.Service;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.AmqpId;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArAbstract;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArStreamFindOffline;
-import ru.kvanttelecom.tv.streammonitoring.core.services.stream.StreamService;
+import ru.kvanttelecom.tv.streammonitoring.core.mappers.stream.StreamMapper;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamState;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.services.cachingservices.StreamService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamStateService;
 
-import java.util.*;
+import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,18 +24,23 @@ import java.util.stream.Collectors;
 public class StreamRpcServer {
 
     @Autowired
-    StreamService streamService;
+    private StreamService streamService;
 
     @Autowired
-    StreamStateService streamStateService;
+    private StreamStateService streamStateService;
+
+    @Autowired
+    private StreamMapper streamMapper;
+
+    private List<Function<ArAbstract,Void>> handlers;
 
     /**
      * find streams by ids
      */
     @RabbitListener(queues = AmqpId.queue.stream.rpc.find)
-    private List<String> find(ArAbstract request) {
+    private List<StreamDto> find(ArAbstract request) {
 
-        List<String> result = null;
+        List<StreamDto> result = null;
         log.trace("AMQP request: {}", request);
 
 
@@ -38,10 +49,11 @@ public class StreamRpcServer {
 
             if (request instanceof ArStreamFindOffline) {
 
-                result = streamStateService.getOffline().stream()
-                    .map(s -> s.getStreamKey().toString())
-                    .collect(Collectors.toList());
-                
+                List<StreamState> stats = streamStateService.getOffline();
+                List<StreamKey> keys = stats.stream().map(StreamState::getStreamKey).collect(Collectors.toList());
+                List<Stream> offline = streamService.findAllByKey(keys);
+                result = streamMapper.toDtoList(offline);
+
                 log.trace("RPC <FIND STREAMS> RESPONSE: {}", result);
             }
         }

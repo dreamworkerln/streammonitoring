@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.events.mediaserver.MediaServerEvent;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.parser.MediaServerEventParser;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.MediaServerEventHandler;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.eventhandlers.MediaServerEventHandler;
 
 import java.util.List;
 

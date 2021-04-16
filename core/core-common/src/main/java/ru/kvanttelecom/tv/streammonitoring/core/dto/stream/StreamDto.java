@@ -1,36 +1,38 @@
 package ru.kvanttelecom.tv.streammonitoring.core.dto.stream;
 
 import lombok.Data;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.dto._base.AbstractDto;
 
 @Data
-public class StreamDto {
+public class StreamDto extends AbstractDto {
 
-        /**
-         * Server id
-         */
-        private int serverId;
+    //private StreamKeyDto streamKey;
 
 
-        /**
-         * Stream name
-         */
-        private String name;
+    private String name;
 
-        /**
-         * Stream title
-         */
-        private String title;
+    private String title;
 
-        /**
-         * Is stream alive
-         */
-        private boolean alive;
+    private String hostname;
 
-        public StreamDto() {}
+    private String comment;
 
-        public StreamDto(String name, String title, boolean alive) {
-                this.name = name;
-                this.title = title;
-                this.alive = alive;
-        }
+    private String postalAddress;
+    private String coordinates;
+
+    private String client;
+
+    /**
+     * Is stream alive
+     */
+    private boolean alive;
+
+    /**
+     * Is stream flapping
+     */
+    private boolean flapping;
+
+    public StreamDto() {}
+
 }

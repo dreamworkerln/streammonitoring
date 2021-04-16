@@ -9,18 +9,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
-import ru.kvanttelecom.tv.streammonitoring.core.services.server.ServerService;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
+import ru.kvanttelecom.tv.streammonitoring.core.services.cachingservices.ServerService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.parser.WatcherStreamParser;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 
 import static ru.dreamworkerln.spring.utils.common.StringUtils.*;
@@ -60,9 +56,9 @@ public class WatcherStreamDownloader implements StreamDownloader {
      * @return List<Stream>
      */
     @Override
-    public List<Stream> getAll() {
+    public List<StreamDto> getAll() {
 
-        List<Stream> result;
+        List<StreamDto> result;
         ResponseEntity<String> resp = null;
         String body = null;
 
@@ -81,10 +77,7 @@ public class WatcherStreamDownloader implements StreamDownloader {
         }
 
         try {
-            Map<String, Server> servers = serverService.findAll().stream()
-                .collect(Collectors.toMap(Server::getDomainName, Function.identity()));
-
-            result = streamParser.getArray(body, servers);
+            result = streamParser.getArray(body);
         }
         catch (Exception rethrow) {
             String message = formatMsg("Watcher parse cameras error:" + " {}, {}", resp.getStatusCode(), body);
@@ -103,8 +96,8 @@ public class WatcherStreamDownloader implements StreamDownloader {
      * @return Optional<Stream>
      */
     @Override
-    public Optional<Stream> getOne(StreamKey streamKey) {
-        Optional<Stream> result;
+    public Optional<StreamDto> getOne(StreamKey streamKey) {
+        Optional<StreamDto> result;
         ResponseEntity<String> resp = null;
         String body = null;
 
@@ -125,10 +118,7 @@ public class WatcherStreamDownloader implements StreamDownloader {
 
 
         try {
-            Map<String, Server> servers = serverService.findAll().stream()
-                .collect(Collectors.toMap(Server::getDomainName, Function.identity()));
-
-            result = streamParser.getOne(body, servers);
+            result = streamParser.getOne(body);
         }
         catch (Exception rethrow) {
             String message = formatMsg("Watcher parse camera error:" + " {}, {}", resp.getStatusCode(), body);

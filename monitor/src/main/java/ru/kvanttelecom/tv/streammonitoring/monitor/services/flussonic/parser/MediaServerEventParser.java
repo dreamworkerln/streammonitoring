@@ -49,7 +49,7 @@ public class MediaServerEventParser {
                 streamName = event.getString("media");
 
                 // server host name
-                String serverName = event.getString("server");
+                String serverName = event.getString("server").toLowerCase();
 
                 // time
                 long utcMs = event.getLong("utc_ms");

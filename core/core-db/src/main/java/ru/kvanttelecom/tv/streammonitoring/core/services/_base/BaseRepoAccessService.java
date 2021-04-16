@@ -1,11 +1,12 @@
 package ru.kvanttelecom.tv.streammonitoring.core.services._base;
 
 import com.cosium.spring.data.jpa.entity.graph.domain.EntityGraph;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.transaction.annotation.Transactional;
+import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
 import ru.kvanttelecom.tv.streammonitoring.core.repositories._base.CustomRepository;
 
 import java.util.ArrayList;
@@ -13,11 +14,16 @@ import java.util.List;
 import java.util.Optional;
 
 
-@RequiredArgsConstructor
+
+@Transactional
 @Slf4j
-public abstract class BaseRepoAccessService<T> {
+public abstract class BaseRepoAccessService<T extends AbstractEntity> {
 
     private final CustomRepository<T, Long> baseRepository;
+
+    protected BaseRepoAccessService(CustomRepository<T, Long> baseRepository) {
+        this.baseRepository = baseRepository;
+    }
 
     public Optional<T> findById(Long id) {
         return baseRepository.findById(id);
@@ -41,7 +47,7 @@ public abstract class BaseRepoAccessService<T> {
         return baseRepository.findOne(spec);
     }
 
-    public List<T> findAllById(List<Long> listId) {
+    public List<T> findAllById(Iterable<Long> listId) {
         return baseRepository.findAllById(listId);
     }
 
@@ -75,7 +81,11 @@ public abstract class BaseRepoAccessService<T> {
         baseRepository.delete(t);
     }
 
-    public void deleteAll(List<T> values) {
+    public void deleteAll(Iterable<T> values) {
         baseRepository.deleteAll(values);
     }
+
+//    public void flush() {
+//        baseRepository.flush();
+//    }
 }

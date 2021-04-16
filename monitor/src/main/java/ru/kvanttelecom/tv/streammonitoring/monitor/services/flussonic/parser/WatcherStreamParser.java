@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Address;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Point;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
@@ -20,23 +21,23 @@ import static ru.dreamworkerln.spring.utils.common.Utils.throwIfNull;
 @Slf4j
 public class WatcherStreamParser {
 
-    public List<Stream> getArray(String json, Map<String, Server> servers) {
+    public List<StreamDto> getArray(String json) {
 
-        List<Stream> result = new ArrayList<>();
+        List<StreamDto> result = new ArrayList<>();
         JSONArray array = new JSONArray(json);
         // iterate over all streams from watcher
         for (int i = 0; i < array.length(); i++) {
             JSONObject obj = array.getJSONObject(i);
-            Stream stream = getStream(obj, servers);
-            result.add(stream);
+            StreamDto dto = getStream(obj);
+            result.add(dto);
         }
         return result;
     }
 
-    public Optional<Stream> getOne(String json, Map<String, Server> servers) {
+    public Optional<StreamDto> getOne(String json) {
 
         JSONObject obj = new JSONObject(json);
-        return Optional.of(getStream(obj, servers));
+        return Optional.of(getStream(obj));
     }
 
 
@@ -50,33 +51,38 @@ public class WatcherStreamParser {
 //    }
 
 
-    private Stream getStream(JSONObject obj, Map<String, Server> servers) {
+    private StreamDto getStream(JSONObject obj) {
         String name = obj.getString("name");
         String title = obj.optString("title");
         String comment = obj.optString("comment");
         String coordinatesString = obj.optString("coordinates");
-        String postal_address = obj.optString("postal_address");
+        String postalAddress = obj.optString("postal_address");
         String domainName = obj.getJSONObject("stream_status").getString("server");
-        boolean alive = obj.getJSONObject("stream_status").getBoolean("alive");
-
-        Server server = servers.get(domainName);
-
-        throwIfNull(server, "Server " + domainName + "not found");
-
-        Stream stream = new Stream(server, name, title);
-        stream.setInitialAliveInternal(alive);
+        String hostname = domainName.split("\\.", 2)[0].toLowerCase();
+        boolean alive = obj.getJSONObject("stream_status").optBoolean("alive", false);
+        throwIfNull(hostname, "Server " + hostname + "not found");
 
 
-        String[] arr = coordinatesString.split(" ");
-        Point p = null;
-        if (arr.length == 2) {
-            p = new Point(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]));
-        }
-        Address address = new Address(postal_address, p);
-
-        stream.setAddress(address);
-        stream.setComment(comment);
-        return stream;
+        StreamDto result = new StreamDto();
+        result.setName(name);
+        result.setHostname(hostname);
+        result.setTitle(title);
+        result.setComment(comment);
+        result.setPostalAddress(postalAddress);
+        result.setCoordinates(coordinatesString);
+        result.setClient(null);
+        result.setAlive(alive);
+        
+        return result;
     }
 }
 
+/*
+
+    String[] arr = coordinatesString.split(" ");
+    Point p = null;
+        if (arr.length == 2) {
+            p = new Point(Double.parseDouble(arr[0]), Double.parseDouble(arr[1]));
+            }
+            Address address = new Address(postal_address, p);
+*/

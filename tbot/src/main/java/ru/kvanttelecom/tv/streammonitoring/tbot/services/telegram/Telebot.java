@@ -13,8 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.dreamworkerln.spring.utils.common.threadpool.BlockingJobPool;
 import ru.dreamworkerln.spring.utils.common.threadpool.JobResult;
-import ru.kvanttelecom.tv.streammonitoring.tbot.entities.Stream;
-import ru.kvanttelecom.tv.streammonitoring.tbot.beans.StreamMap;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.TBotProperties;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp.StreamRpcClient;
 
@@ -23,7 +22,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
@@ -166,25 +164,19 @@ public class Telebot {
         List<String> linesDown = new ArrayList<>();
         List<String> linesFlap = new ArrayList<>();
 
-        List<Stream> streams = rpcClient.findOffline();
+        List<StreamDto> streams = rpcClient.findOffline();
 
 
-        for (Stream stream  : streams) {
-
-//            // filter pass only offline or flapping cameras
-//            if(stream.isAlive() && !stream.isFlapping()) {
-//                continue;
-//            }
+        for (StreamDto stream  : streams) {
 
             String title = stream.getTitle();
             boolean isFlapping = stream.isFlapping();
 
             if(isBlank(title)) {
-                title = stream.getName() + "   (" + stream.getServer() + ")";
+                title = stream.getName() + "   (" + stream.getHostname() + ")";
             }
 
             if(isFlapping) {
-                //linesFlap.add(title + " [FLAPPING]" + "\n");
                 linesFlap.add(title + "\n");
             }
             else {

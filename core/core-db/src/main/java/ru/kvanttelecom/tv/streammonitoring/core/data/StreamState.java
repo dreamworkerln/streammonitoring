@@ -36,8 +36,9 @@ public class StreamState {
     private final StreamKey streamKey;
 
 
-    public StreamState(StreamKey streamKey) {
+    public StreamState(StreamKey streamKey, boolean alive) {
         this.streamKey = streamKey;
+        this.alive = alive;
     }
 
     @Override

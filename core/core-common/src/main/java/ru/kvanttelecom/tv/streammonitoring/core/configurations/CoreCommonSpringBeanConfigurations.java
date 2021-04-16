@@ -8,9 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -18,6 +16,9 @@ import org.springframework.web.client.RestTemplate;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
 import ru.dreamworkerln.spring.utils.common.rest.RestClientBuilder;
 
+import javax.validation.Validation;
+import javax.validation.ValidatorFactory;
+import javax.validation.Validator;
 import java.time.Duration;
 
 
@@ -79,5 +80,12 @@ public class CoreCommonSpringBeanConfigurations {
         //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         //mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true);
         return mapper;
+    }
+
+
+    @Bean
+    public Validator validator() {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        return factory.getValidator();
     }
 }

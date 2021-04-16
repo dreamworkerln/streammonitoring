@@ -29,7 +29,7 @@ public class MonitorProperties {
     /**
      * Уникальность имени стрима в системе(на всех стримерах)
      */
-    @Value("${check.stream.global.uniqueness}")
+    @Value("${check.stream.global.uniqueness:false}")
     @Getter
     private boolean checkStreamGlobalUniq;
 

@@ -11,8 +11,10 @@ import ru.kvanttelecom.tv.streammonitoring.core.entities.Client;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
 
+import javax.annotation.Nullable;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+
 import java.util.Objects;
 
 /**
@@ -44,13 +46,10 @@ public class Stream extends AbstractEntity {
 
     private String comment;
 
-//    @Setter(AccessLevel.PACKAGE)
-//    StreamKey streamKey;
-
-
     @ManyToOne
     @JoinColumn(name="server_id")
     @NotNull
+    @Setter(AccessLevel.NONE)
     private Server server;
 
     @ManyToOne(cascade = CascadeType.ALL)
@@ -64,12 +63,12 @@ public class Stream extends AbstractEntity {
     //@Embedded
     //private Point coordinates;
 
-    /**
-     * Was stream alive on the moment of importing from mediaserver/watcher - for internal use only
-     * To get current stream status use StreamStatusService
-     */
-    @Transient
-    private boolean initialAliveInternal;
+//    /**
+//     * Was stream alive on the moment of importing from mediaserver/watcher - for internal use only
+//     * To get current stream status use StreamStatusService
+//     */
+//    @Transient
+//    private boolean initialAliveInternal;
 
     @Transient
     @Setter(AccessLevel.NONE)
@@ -126,6 +125,7 @@ public class Stream extends AbstractEntity {
             "name='" + name + '\'' +
             ", title='" + title + '\'' +
             ", server='" + srv + '\'' +
+            ", streamKey='" + streamKey + '\'' +
             '}';
     }
 

@@ -6,13 +6,17 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
+import ru.dreamworkerln.spring.utils.common.threadpool.BatchItem;
+import ru.dreamworkerln.spring.utils.common.threadpool.BlockingJobPool;
+import ru.dreamworkerln.spring.utils.common.threadpool.JobResult;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
-import ru.kvanttelecom.tv.streammonitoring.core.services.server.ServerService;
+import ru.kvanttelecom.tv.streammonitoring.core.services.cachingservices.ServerService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.parser.MediaServerStreamParser;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +31,9 @@ import static ru.kvanttelecom.tv.streammonitoring.monitor.configurations.SpringB
 @Service
 @Slf4j
 public class MediaserverStreamDownloader implements StreamDownloader {
+
+    private final BlockingJobPool<Void, List<StreamDto>> jobPool =
+        new BlockingJobPool<>(5, Duration.ofSeconds(5), null);
 
     @Autowired
     private MonitorProperties props;
@@ -43,53 +50,114 @@ public class MediaserverStreamDownloader implements StreamDownloader {
 
     /**
      * Get stream list from Mediaserver
-     * @return List<Stream>
+     * @return List<StreamDto>
      */
     @Override
-    public List<Stream> getAll() {
+    public List<StreamDto> getAll() {
 
-        List<Stream> result = new ArrayList<>();
-        ResponseEntity<String> resp = null;
-        String body = null;
-
+        List<StreamDto> result = new ArrayList<>();
 
         Map<String, Server> servers = serverService.findAll().stream()
             .collect(Collectors.toMap(Server::getDomainName, Function.identity()));
 
+
+        List<BatchItem<Void, List<StreamDto>>> tasks = new ArrayList<>();
         for (Server server : servers.values()) {
 
-            // skip one mediaserver on fail, proceed with others
-            try {
+            BatchItem<Void, List<StreamDto>> bitem = new BatchItem<>(null, unused -> {
 
                 String url = props.getProtocol() +
                     server.getDomainName() +
                     "/flussonic/api/media";
 
-                try {
-                    log.trace("GET: {}", url);
-                    resp = restClient.get(url);
-                    body = resp.hasBody() ? resp.getBody() : null;
-                    throwIfBlank(body, "Response <Flussonic Mediaserver>: json<cameras> == empty");
-                } catch (Exception rethrow) {
-                    throw new RuntimeException("Mediaserver download cameras error:", rethrow);
-                }
+                log.trace("GET: {}", url);
+                ResponseEntity<String> resp = restClient.get(url);
+                String body = resp.hasBody() ? resp.getBody() : null;
+                throwIfBlank(body, "Response <Flussonic Mediaserver>: json<cameras> == empty");
 
+                List<StreamDto> res = null;
                 try {
-                    List<Stream> tmp = streamParser.getArray(body, server);
-                    result.addAll(tmp);
+                    res = streamParser.getArray(body, server.getHostname());
                 } catch (Exception rethrow) {
-                    String message = formatMsg("Mediaserver parse cameras error:" + " {}, {}", resp.getStatusCode(), body);
+                    String message = formatMsg("Mediaserver parse cameras error:" + " {}, {}",
+                        resp.getStatusCode(), body);
                     throw new RuntimeException(message, rethrow);
                 }
+                return new JobResult<>(null, res);
+            });
 
-            }
-            catch (Exception skip) {
-                // log.error -> log.trace : avoid log pollution
-                log.trace("Mediaserver {} import error, SKIPPING", server.getHostname(), skip);
+            tasks.add(bitem);
+        }
+
+
+        List<JobResult<Void, List<StreamDto>>> listListDto;
+        try {
+            listListDto = jobPool.batchBlocking(tasks);
+        }
+        catch(Exception rethrow) {
+            throw new RuntimeException("Something terrible happened", rethrow);
+        }
+
+
+        for (JobResult<Void, List<StreamDto>> jobResult : listListDto) {
+            if (jobResult.getException() == null) {
+                result.addAll(jobResult.getResult());
             }
         }
+
         return result;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//        for (Server server : servers.values()) {
+//
+//            // skip one mediaserver on fail, proceed with others
+//            try {
+//
+//                String url = props.getProtocol() +
+//                    server.getDomainName() +
+//                    "/flussonic/api/media";
+//
+//                jobPool.batchAsync();
+//                try {
+//                    log.trace("GET: {}", url);
+//                    resp = restClient.get(url);
+//                    body = resp.hasBody() ? resp.getBody() : null;
+//                    throwIfBlank(body, "Response <Flussonic Mediaserver>: json<cameras> == empty");
+//                } catch (Exception rethrow) {
+//                    throw new RuntimeException("Mediaserver download cameras error:", rethrow);
+//                }
+//
+//                try {
+//                    List<StreamDto> tmp = streamParser.getArray(body, server.getHostname());
+//                    result.addAll(tmp);
+//                } catch (Exception rethrow) {
+//                    String message = formatMsg("Mediaserver parse cameras error:" + " {}, {}", resp.getStatusCode(), body);
+//                    throw new RuntimeException(message, rethrow);
+//                }
+//
+//            }
+//            catch (Exception skip) {
+//                // log.error -> log.trace : avoid log pollution
+//                log.trace("Mediaserver {} import error, SKIPPING", server.getHostname(), skip);
+//            }
+//        }
+
+
+
 
 
     // FLUSSONIC MEDIASERVER HTTP API GET ONE NOT WORKING - KLUDGE - GET ALL STREAMS
@@ -98,17 +166,18 @@ public class MediaserverStreamDownloader implements StreamDownloader {
      * @return Optional<Stream>
      */
     @Override
-    public Optional<Stream> getOne(StreamKey streamKey) {
+    public Optional<StreamDto> getOne(StreamKey streamKey) {
 
-        Optional<Stream> result;
+        Optional<StreamDto> result;
         ResponseEntity<String> resp;
         String body;
 
         Optional<Server> oServer = serverService.findByHostname(streamKey.getHostname());
         oServer.orElseThrow(() -> new IllegalArgumentException("Server " + streamKey.getHostname() + " not found"));
+        Server server = oServer.get();
 
         String url = props.getProtocol() +
-            oServer.get().getDomainName() +
+            server.getDomainName() +
             "/flussonic/api/media";
 
         // downloading
@@ -125,8 +194,8 @@ public class MediaserverStreamDownloader implements StreamDownloader {
         // parsing
         try {
             result = Optional.ofNullable(
-            streamParser.getArray(body, oServer.get()).stream()
-                .collect(Collectors.toMap(Stream::getName, Function.identity()))
+            streamParser.getArray(body, server.getHostname()).stream()
+                .collect(Collectors.toMap(StreamDto::getName, Function.identity()))
                 .get(streamKey.getName())
             );
         }

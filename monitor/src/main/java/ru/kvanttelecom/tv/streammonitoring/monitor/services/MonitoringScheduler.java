@@ -33,7 +33,7 @@ public class MonitoringScheduler {
      */
     //
     @Scheduled(fixedDelayString = "#{monitorProperties.getRefreshIntervalSec() * 1000}",
-        initialDelayString = "#{3 * 1000}")
+        initialDelayString = "#{1 * 1000}")
     private void updateStreams() {
 
         log.trace("Monitor: update streams");
