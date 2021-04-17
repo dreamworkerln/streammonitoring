@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
@@ -57,6 +58,8 @@ public class MediaServerStreamParser {
 
         String title = options.optString("title", null);
 
+        boolean enabled = !options.optBoolean("disabled", false);
+
         StreamDto result = new StreamDto();
         result.setName(name);
         result.setHostname(hostname);
@@ -66,6 +69,8 @@ public class MediaServerStreamParser {
         //result.setCoordinates(coordinatesString);
         //result.setClient(null);
         result.setAlive(alive);
+        result.setEnabled(enabled);
+        result.setStreamKey(new StreamKey(hostname, name));
 
         return result;
     }

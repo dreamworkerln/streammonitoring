@@ -10,7 +10,7 @@ import org.springframework.util.Assert;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
-import ru.kvanttelecom.tv.streammonitoring.core.services.cachingservices.ServerService;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.ServerMultiService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.parser.WatcherStreamParser;
 
@@ -43,7 +43,7 @@ public class WatcherStreamDownloader implements StreamDownloader {
     WatcherStreamParser streamParser;
 
     @Autowired
-    ServerService serverService;
+    ServerMultiService serverMultiService;
 
 
 

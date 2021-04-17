@@ -12,7 +12,7 @@ import ru.dreamworkerln.spring.utils.common.threadpool.JobResult;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
-import ru.kvanttelecom.tv.streammonitoring.core.services.cachingservices.ServerService;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.ServerMultiService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.parser.MediaServerStreamParser;
 
@@ -39,7 +39,7 @@ public class MediaserverStreamDownloader implements StreamDownloader {
     private MonitorProperties props;
 
     @Autowired
-    private ServerService serverService;
+    private ServerMultiService serverMultiService;
 
     @Autowired
     @Qualifier(REST_CLIENT_MEDIASERVER)
@@ -57,7 +57,7 @@ public class MediaserverStreamDownloader implements StreamDownloader {
 
         List<StreamDto> result = new ArrayList<>();
 
-        Map<String, Server> servers = serverService.findAll().stream()
+        Map<String, Server> servers = serverMultiService.findAll().stream()
             .collect(Collectors.toMap(Server::getDomainName, Function.identity()));
 
 
@@ -70,7 +70,7 @@ public class MediaserverStreamDownloader implements StreamDownloader {
                     server.getDomainName() +
                     "/flussonic/api/media";
 
-                log.trace("GET: {}", url);
+                //log.trace("GET: {}", url);
                 ResponseEntity<String> resp = restClient.get(url);
                 String body = resp.hasBody() ? resp.getBody() : null;
                 throwIfBlank(body, "Response <Flussonic Mediaserver>: json<cameras> == empty");
@@ -172,7 +172,7 @@ public class MediaserverStreamDownloader implements StreamDownloader {
         ResponseEntity<String> resp;
         String body;
 
-        Optional<Server> oServer = serverService.findByHostname(streamKey.getHostname());
+        Optional<Server> oServer = serverMultiService.findByHostname(streamKey.getHostname());
         oServer.orElseThrow(() -> new IllegalArgumentException("Server " + streamKey.getHostname() + " not found"));
         Server server = oServer.get();
 
@@ -182,7 +182,7 @@ public class MediaserverStreamDownloader implements StreamDownloader {
 
         // downloading
         try {
-            log.trace("GET: {}", url);
+            //log.trace("GET: {}", url);
             resp = restClient.get(url);
             body = resp.hasBody() ? resp.getBody() : null;
             throwIfBlank(body, "Response <Flussonic Mediaserver>: json<camera> == empty");

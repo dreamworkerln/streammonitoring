@@ -7,7 +7,10 @@ import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Address;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
-import ru.kvanttelecom.tv.streammonitoring.core.services.cachingservices.ServerService;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.ServerMultiService;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamMultiService;
+
+import javax.annotation.PostConstruct;
 
 
 /*
@@ -18,11 +21,16 @@ nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
 @Mapper(config = AbstractMapper.class)
 public abstract class StreamMapper extends AbstractMapper<Stream, StreamDto> {
 
-//    @Autowired
-//    private StreamService streamService;
+    @Autowired
+    private StreamMultiService streamMultiService;
 
     @Autowired
-    private ServerService serverService;
+    private ServerMultiService serverMultiService;
+
+    @PostConstruct
+    private void postConstruct() {
+        this.entityAccessService = streamMultiService;
+    }
 
 
 
@@ -46,12 +54,12 @@ public abstract class StreamMapper extends AbstractMapper<Stream, StreamDto> {
     @Mapping(target = "server", source = "hostname",  qualifiedByName = "findServerByHostname")
     @Mapping(target = "client", ignore = true)
     @Mapping(target = "address", ignore = true)
-    public abstract Stream toEntity(StreamDto userDto);
+    public abstract Stream toEntity(StreamDto streamDto);
 
 
     @Named("findServerByHostname")
     Server findServerByHostname(String hostname) {
-        return serverService.findByHostname(hostname).orElseThrow(() ->
+        return serverMultiService.findByHostname(hostname).orElseThrow(() ->
             new IllegalArgumentException("Server by hostname '" + hostname + "' not found"));
     }
 
@@ -64,6 +72,14 @@ public abstract class StreamMapper extends AbstractMapper<Stream, StreamDto> {
     String findCoordinates(Address address) {
         return address != null && address.getCoordinates() != null ?
             address.getCoordinates().toString() : null;
+    }
+
+    // Стримера не знают о наших Id, в качестве PK используется StreamKey,
+    // поэтому подсосем Id вручную (если есть)
+    @BeforeMapping
+    public void beforeMapping(StreamDto source, @MappingTarget Stream target) {
+        streamMultiService.findByStreamKey(source.getStreamKey())
+            .ifPresent(l -> source.setId(l.getId()));
     }
 
     @AfterMapping

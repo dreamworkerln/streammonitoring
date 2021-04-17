@@ -9,8 +9,9 @@ import org.springframework.web.client.RestTemplate;
 import ru.dreamworkerln.spring.utils.common.rest.RestClient;
 import ru.dreamworkerln.spring.utils.common.rest.RestClientBuilder;
 import ru.kvanttelecom.tv.streammonitoring.core.mappers.stream.StreamMapper;
-import ru.kvanttelecom.tv.streammonitoring.core.services.cachingservices.StreamService;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamStateService;
+import ru.kvanttelecom.tv.streammonitoring.core.mappers.streamstate.StreamStateMapper;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamMultiService;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.StreamManager;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.downloader.StreamDownloader;
@@ -68,16 +69,17 @@ public class SpringBeanConfigurations {
     @Bean
     public StreamManager streamImporter(
         StreamMapper streamMapper,
-        StreamService streamService,
-        StreamStateService streamStateService,
+        StreamStateMapper streamStateMapper,
+        StreamMultiService streamMultiService,
+        StreamStateMultiService streamStateMultiService,
         StreamDownloader watcherStreamDownloader,
         StreamDownloader mediaserverStreamDownloader) {
 
         if(props.getWatcher().isUse()) {
-            return new StreamManager(streamMapper, streamService, streamStateService, watcherStreamDownloader, props);
+            return new StreamManager(streamMapper, streamStateMapper, streamMultiService, streamStateMultiService, watcherStreamDownloader, props);
         }
         else {
-            return new StreamManager(streamMapper, streamService, streamStateService, mediaserverStreamDownloader, props);
+            return new StreamManager(streamMapper, streamStateMapper, streamMultiService, streamStateMultiService, mediaserverStreamDownloader, props);
         }
     }
 }

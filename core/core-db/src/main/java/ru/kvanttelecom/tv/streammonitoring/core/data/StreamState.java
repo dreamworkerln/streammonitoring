@@ -3,12 +3,13 @@ package ru.kvanttelecom.tv.streammonitoring.core.data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
 
 /**
  * Internal stream status info
  */
 @Slf4j
-public class StreamState {
+public class StreamState extends AbstractEntity {
 
     private static final int STREAM_MAX_LEVEL = 10;
     private static final int STREAM_THRESHOLD_LEVEL = (int)(STREAM_MAX_LEVEL * 0.7);
@@ -35,9 +36,9 @@ public class StreamState {
     @Getter
     private final StreamKey streamKey;
 
-
-    public StreamState(StreamKey streamKey, boolean alive) {
+    public StreamState(StreamKey streamKey, boolean enabled, boolean alive) {
         this.streamKey = streamKey;
+        this.enabled = enabled;
         this.alive = alive;
     }
 
@@ -45,6 +46,7 @@ public class StreamState {
     public String toString() {
         return "StreamState{" +
             "streamKey=" + streamKey +
+            ", enabled=" + enabled +
             ", alive=" + alive +
             '}';
     }

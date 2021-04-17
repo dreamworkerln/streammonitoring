@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Address;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Point;
@@ -60,6 +61,8 @@ public class WatcherStreamParser {
         String domainName = obj.getJSONObject("stream_status").getString("server");
         String hostname = domainName.split("\\.", 2)[0].toLowerCase();
         boolean alive = obj.getJSONObject("stream_status").optBoolean("alive", false);
+        boolean enabled = obj.optBoolean("enabled", false);
+
         throwIfNull(hostname, "Server " + hostname + "not found");
 
 
@@ -72,6 +75,8 @@ public class WatcherStreamParser {
         result.setCoordinates(coordinatesString);
         result.setClient(null);
         result.setAlive(alive);
+        result.setEnabled(enabled);
+        result.setStreamKey(new StreamKey(hostname, name));
         
         return result;
     }

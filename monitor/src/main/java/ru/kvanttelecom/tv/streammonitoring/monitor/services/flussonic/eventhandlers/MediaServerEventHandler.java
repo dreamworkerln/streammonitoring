@@ -4,17 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
-import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamEventDto;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.enums.MediaServerEventType;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.events.mediaserver.MediaServerEvent;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.StreamManager;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamStateService;
-import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 
 @Component
@@ -25,7 +22,7 @@ public class MediaServerEventHandler {
     private final Map<MediaServerEventType, Consumer<MediaServerEvent>> handlers = new HashMap<>();
 
     @Autowired
-    StreamStateService stateService;
+    StreamStateMultiService stateService;
 
     @Autowired
     StreamManager streamManager;
@@ -70,18 +67,18 @@ public class MediaServerEventHandler {
         //return new HashSet<>(Collections.singletonList(StreamEventType.ERROR));
     }
 
-    // Stream has been added to mediaserver
+    // Stream has been started on mediaserver
     private void started(MediaServerEvent event) {
         log.trace("Started: '{}'", event.getStreamKey());
 
-        streamManager.importOne(event.getStreamKey());
+        streamManager.start(event.getStreamKey());
         //return new HashSet<>(Collections.singletonList(StreamEventType.ADDED));
     }
 
-    // Stream has been removed from mediaserver
+    // Stream has been stopped on mediaserver
     private void stopped(MediaServerEvent event) {
         log.trace("Stopped: '{}'", event.getStreamKey());
-        streamManager.delete(event.getStreamKey());
+        streamManager.stop(event.getStreamKey());
         //return new HashSet<>(Collections.singletonList(StreamEventType.DELETED));
     }
 
@@ -91,7 +88,7 @@ public class MediaServerEventHandler {
         String aliveStr = alive ? "online" : "offline";
         log.trace("State changed '{}': {}", event.getStreamKey(), aliveStr);
         StreamKey key = event.getStreamKey();
-        streamManager.updateStatus(key, alive);
+        streamManager.changeAlive(key, alive);
     }
 
 

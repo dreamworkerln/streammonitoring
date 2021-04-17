@@ -5,13 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
-import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
 import ru.kvanttelecom.tv.streammonitoring.core.repositories.StreamRepository;
-import ru.kvanttelecom.tv.streammonitoring.core.services._base.BaseRepoAccessService;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import ru.kvanttelecom.tv.streammonitoring.core.services._base.RepoAccessService;
 
 /**
  * Stream database service, use StreamManager to operate Streams on upper level
@@ -19,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @Transactional
 @Slf4j
-public class StreamDatabaseService extends BaseRepoAccessService<Stream> {
+public class StreamService extends RepoAccessService<Stream> {
 
     private final StreamRepository repository;
 
@@ -29,7 +25,7 @@ public class StreamDatabaseService extends BaseRepoAccessService<Stream> {
 //    private boolean initialized = false;
 
     @Autowired
-    public StreamDatabaseService(StreamRepository repository) {
+    public StreamService(StreamRepository repository) {
         super(repository);
         this.repository = repository;
     }

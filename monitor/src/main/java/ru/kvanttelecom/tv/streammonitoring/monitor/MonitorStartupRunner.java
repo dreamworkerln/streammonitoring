@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.stereotype.Component;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.Server;
-import ru.kvanttelecom.tv.streammonitoring.core.services.cachingservices.ServerService;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.ServerMultiService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
 import ru.kvanttelecom.tv.streammonitoring.utils.startuprunner.BaseStartupRunner;
 
@@ -14,7 +14,7 @@ import ru.kvanttelecom.tv.streammonitoring.utils.startuprunner.BaseStartupRunner
 public class MonitorStartupRunner extends BaseStartupRunner {
 
     @Autowired
-    private ServerService serverService;
+    private ServerMultiService serverMultiService;
 
     @Autowired
     private MonitorProperties props;
@@ -26,8 +26,8 @@ public class MonitorStartupRunner extends BaseStartupRunner {
     }
 
     private void addServer(String domainName) {
-        String hostname = domainName.split("\\.")[0];
+        String hostname = domainName.split("\\.")[0].toLowerCase();
         Server server = new Server(hostname, domainName);
-        server = serverService.save(server);
+        server = serverMultiService.save(server);
     }
 }

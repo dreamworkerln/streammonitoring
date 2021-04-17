@@ -12,8 +12,8 @@ import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamState;
 import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
-import ru.kvanttelecom.tv.streammonitoring.core.services.cachingservices.StreamService;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamStateService;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamMultiService;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService;
 
 import java.util.List;
 import java.util.function.Function;
@@ -24,10 +24,10 @@ import java.util.stream.Collectors;
 public class StreamRpcServer {
 
     @Autowired
-    private StreamService streamService;
+    private StreamMultiService streamMultiService;
 
     @Autowired
-    private StreamStateService streamStateService;
+    private StreamStateMultiService streamStateMultiService;
 
     @Autowired
     private StreamMapper streamMapper;
@@ -49,9 +49,9 @@ public class StreamRpcServer {
 
             if (request instanceof ArStreamFindOffline) {
 
-                List<StreamState> stats = streamStateService.getOffline();
+                List<StreamState> stats = streamStateMultiService.getOffline();
                 List<StreamKey> keys = stats.stream().map(StreamState::getStreamKey).collect(Collectors.toList());
-                List<Stream> offline = streamService.findAllByKey(keys);
+                List<Stream> offline = streamMultiService.findAllByKey(keys);
                 result = streamMapper.toDtoList(offline);
 
                 log.trace("RPC <FIND STREAMS> RESPONSE: {}", result);

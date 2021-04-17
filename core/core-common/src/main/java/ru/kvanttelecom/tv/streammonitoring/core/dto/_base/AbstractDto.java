@@ -12,7 +12,7 @@ public abstract class AbstractDto implements Serializable {
     protected Long id;
 
     //@Setter(AccessLevel.NONE)
-    protected Boolean enabled;
+    protected boolean enabled = true;
 
     //@Setter(AccessLevel.NONE)
     protected Instant created;

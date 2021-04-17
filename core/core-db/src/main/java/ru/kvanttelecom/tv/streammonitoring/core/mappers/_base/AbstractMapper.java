@@ -5,15 +5,16 @@ import org.mapstruct.*;
 import ru.dreamworkerln.spring.utils.common.SpringBeanUtilsEx;
 import ru.kvanttelecom.tv.streammonitoring.core.dto._base.AbstractDto;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
-import ru.kvanttelecom.tv.streammonitoring.core.services._base.BaseRepoAccessService;
+import ru.kvanttelecom.tv.streammonitoring.core.services._base.Multicache;
+import org.springframework.beans.BeanUtils;
 
 import java.util.List;
 
 
-@MapperConfig(/*componentModel = "spring",*/ unmappedTargetPolicy = ReportingPolicy.ERROR)
+@MapperConfig(unmappedTargetPolicy = ReportingPolicy.ERROR)
 public abstract class AbstractMapper<E extends AbstractEntity, D extends AbstractDto> {
 
-    protected BaseRepoAccessService<E> baseRepoAccessService;
+    protected Multicache<E> entityAccessService;
 
 
     /**
@@ -37,13 +38,22 @@ public abstract class AbstractMapper<E extends AbstractEntity, D extends Abstrac
 
         // Update existing entity in DB
         if(source.getId() != null) {
+
             // load result from DB (result.id will be != null)
-            result = baseRepoAccessService.findById(source.getId())
+            result = entityAccessService.findById(source.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Entity by id: " + source.getId() + " not found"));
+
+            // make clone of entity
+            // case entity may be loaded from cache
+            // and without cloning manipulating with result will alter entity in cache (underlying storage level)
+            // result = clone(result);
 
             // Merge target to result
             // Copy non-null fields from target to result
             SpringBeanUtilsEx.copyPropertiesExcludeNull(target, result);
+
+
+
             // So got in result fields updated from target(source), and result have id
 
             // Next need to validate result and so on ...
@@ -60,6 +70,8 @@ public abstract class AbstractMapper<E extends AbstractEntity, D extends Abstrac
     public abstract List<D> toDtoList(List<E> entityList);
 
     public abstract List<E> toEntityList(List<D> dtoList);
+
+    //public abstract E clone(E entity);
 
 
 

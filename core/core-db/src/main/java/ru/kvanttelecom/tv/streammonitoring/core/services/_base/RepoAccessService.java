@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kvanttelecom.tv.streammonitoring.core.caches.Cachelevel;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
 import ru.kvanttelecom.tv.streammonitoring.core.repositories._base.CustomRepository;
 
@@ -17,11 +18,11 @@ import java.util.Optional;
 
 @Transactional
 @Slf4j
-public abstract class BaseRepoAccessService<T extends AbstractEntity> {
+public abstract class RepoAccessService<T extends AbstractEntity> implements Cachelevel<T> {
 
     private final CustomRepository<T, Long> baseRepository;
 
-    protected BaseRepoAccessService(CustomRepository<T, Long> baseRepository) {
+    protected RepoAccessService(CustomRepository<T, Long> baseRepository) {
         this.baseRepository = baseRepository;
     }
 
@@ -47,8 +48,8 @@ public abstract class BaseRepoAccessService<T extends AbstractEntity> {
         return baseRepository.findOne(spec);
     }
 
-    public List<T> findAllById(Iterable<Long> listId) {
-        return baseRepository.findAllById(listId);
+    public List<T> findAllById(Iterable<Long> ids) {
+        return baseRepository.findAllById(ids);
     }
 
     public List<T> findAll() {
@@ -81,11 +82,12 @@ public abstract class BaseRepoAccessService<T extends AbstractEntity> {
         baseRepository.delete(t);
     }
 
-    public void deleteAll(Iterable<T> values) {
-        baseRepository.deleteAll(values);
+    public void deleteAll(Iterable<T> list) {
+        baseRepository.deleteAll(list);
     }
 
-//    public void flush() {
-//        baseRepository.flush();
-//    }
+    @Override
+    public int size() {
+        return (int)baseRepository.count();
+    }
 }

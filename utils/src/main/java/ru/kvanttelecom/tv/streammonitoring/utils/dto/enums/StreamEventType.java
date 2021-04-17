@@ -7,10 +7,11 @@ public enum StreamEventType {
     ONLINE,
     OFFLINE,
     CREATED,
-    DELETED,
     UPDATED,
+    DELETED,
     ENABLED,
     DISABLED,
+    STOPPED,
     START_FLAPPING,
     STOP_FLAPPING
 }
