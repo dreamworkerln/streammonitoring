@@ -9,9 +9,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class BotScheduler {
 
-    @Autowired
-    StreamSynchronizer synchronizer;
-
 //    /**
 //     * Синхронизирует локальный список стримов с monitor (целиком)
 //     */

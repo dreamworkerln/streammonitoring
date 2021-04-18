@@ -64,6 +64,23 @@ public class AMQPConfiguration {
     // STREAM ----------------------------------------------------------------------
 
     // Event Update ------------------------
+
+    @Bean(AmqpId.queue.stream.events.update)
+    public Queue queueStreamEventUpdate() {
+        return queueStreamEventUpdate;
+    }
+
+    @Bean(AmqpId.exchanger.stream.events.update)
+    public DirectExchange exchangeStreamEventUpdate() {
+        return exchangeStreamEventUpdate;
+    }
+
+    @Bean(AmqpId.binding.stream.events.update)
+    public Binding bindingStreamEventUpdate() {
+        return bindingStreamEventUpdate;
+    }
+
+
 //
 //    @Bean(AmqpId.queue.stream.events.update)
 //    public Queue queueStreamEvent() {
@@ -85,17 +102,17 @@ public class AMQPConfiguration {
 
     // FindAll
     @Bean(AmqpId.queue.stream.rpc.find)
-    public Queue queueStreamRpcFindAll() {
+    public Queue queueStreamRpcFind() {
         return queueStreamRpcFind;
     }
 
     @Bean(AmqpId.exchanger.stream.rpc.find)
-    public DirectExchange exchangeStreamRpcFindAll() {
+    public DirectExchange exchangeStreamRpcFind() {
         return exchangeStreamRpcFind;
     }
 
     @Bean(AmqpId.binding.stream.rpc.find)
-    public Binding bindingStreamRpcFindAll() {
+    public Binding bindingStreamRpcFind() {
         return bindingStreamRpcFind;
     }
 //

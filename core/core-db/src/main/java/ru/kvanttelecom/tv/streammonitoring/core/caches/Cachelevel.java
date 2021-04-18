@@ -15,4 +15,5 @@ public interface Cachelevel<T extends AbstractEntity> {
     void delete(T t);
     void deleteAll(Iterable<T> list);
     int size();
+    boolean containsKey(Long id);
 }

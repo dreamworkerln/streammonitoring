@@ -1,6 +1,7 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamState;
@@ -13,11 +14,11 @@ import ru.kvanttelecom.tv.streammonitoring.core.mappers.streamstate.StreamStateM
 import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamMultiService;
 import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.StreamEventSender;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.downloader.StreamDownloader;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -41,11 +42,12 @@ public class StreamManager {
     private final MonitorProperties props;
     private final StreamDownloader streamDownloader;
     private final StreamStateMultiService streamStateMultiService;
+    private final StreamEventSender streamEventSender;
 
     public StreamManager(StreamMapper streamMapper, StreamStateMapper streamStateMapper, StreamMultiService streamMultiService,
                          StreamStateMultiService streamStateMultiService,
                          StreamDownloader streamDownloader,
-                         MonitorProperties props) {
+                         MonitorProperties props, StreamEventSender streamEventSender) {
 
         this.streamMapper = streamMapper;
         this.streamStateMapper = streamStateMapper;
@@ -53,6 +55,7 @@ public class StreamManager {
         this.streamStateMultiService = streamStateMultiService;
         this.streamDownloader = streamDownloader;
         this.props = props;
+        this.streamEventSender = streamEventSender;
     }
 
 
@@ -83,16 +86,18 @@ public class StreamManager {
         // 2.
         List<Stream> updatesStream = streamMapper.toEntityList(dtoList);
         Map<StreamKey,StreamEventDto> u1 = updateStreams(updatesStream);
-        result.putAll(u1);
+        mergeEvents(u1, result);
 
         // 3.
         List<StreamState> updateStates = streamStateMapper.toEntityList(dtoList);
-        Map<StreamKey,StreamEventDto> u2 = updateStreamStates(updateStates);
-        result.putAll(u2);
+        updateStates.forEach(st -> {
+            Set<StreamEventType> events = streamStateMultiService.update(st);
+            mergeEvents(st.getStreamKey(), events, result);
+        });
 
         // 4.
         Map<StreamKey,StreamEventDto> u3 = checkExpiredStreamStats(updateStates);
-        result.putAll(u3);
+        mergeEvents(u3, result);
 
         // 5.
         if(!firstRun) {
@@ -112,10 +117,10 @@ public class StreamManager {
 
         // 1.
         StreamState updateState = new StreamState(key, true, false);
-        streamStateMultiService.findByStreamKey(key).ifPresent(local -> updateState.setAlive(local.isAlive()));
+        streamStateMultiService.findByKey(key).ifPresent(local -> updateState.setAlive(local.isAlive()));
         updateState.setEnabled(true);
-        Map<StreamKey,StreamEventDto> u1 = updateStreamStates(Collections.singletonList(updateState));
-        result.putAll(u1);
+        Set<StreamEventType> events = streamStateMultiService.update(updateState);
+        mergeEvents(key, events, result);
 
         // 2.
         Optional<StreamDto> oDto = streamDownloader.getOne(key);
@@ -124,9 +129,10 @@ public class StreamManager {
         oDto.ifPresent(dto -> {
             Stream update = streamMapper.toEntity(dto);
             Map<StreamKey,StreamEventDto> u2 = updateStreams(Collections.singletonList(update));
-            result.putAll(u2);
+            mergeEvents(u2, result);
         });
-        oDto.ifPresentOrElse(unused ->{}, () -> log.warn("Downloading stream '" + key + "' - stream not found"));
+        oDto.orElseThrow(() -> new IllegalArgumentException(
+            formatMsg("Downloading stream '" + key + "' - stream not found", key)));
 
         // 4.
         messageSink(new ArrayList<>(result.values()));
@@ -141,17 +147,12 @@ public class StreamManager {
 
         // 1. Обновить StreamStatus - указать что enabled = false, alive = false
 
-        Map<StreamKey,StreamEventDto> eventMap = new HashMap<>();
+        Map<StreamKey,StreamEventDto> result = new HashMap<>();
 
-        Optional<StreamState> oState = streamStateMultiService.findByStreamKey(key);
-        oState.ifPresentOrElse(unused ->{}, () -> log.warn("Stopping stream '" + key + "' - stream not found"));
-
-        oState.ifPresent(local -> {
-            StreamState update = new StreamState(key, false, false);
-            Set<StreamEventType> events = streamStateMultiService.update(update);
-            aggregateEvents(key, events, eventMap);
-            messageSink(new ArrayList<>(eventMap.values()));
-        });
+        StreamState update = new StreamState(key, false, false);
+        Set<StreamEventType> events = streamStateMultiService.update(update);
+        mergeEvents(key, events, result);
+        messageSink(new ArrayList<>(result.values()));
     }
 
 
@@ -162,16 +163,14 @@ public class StreamManager {
 
         // 1. Обновить StreamStatus enabled взять что есть, alive взять из обновления
 
-        Map<StreamKey,StreamEventDto> eventMap = new HashMap<>();
+        Map<StreamKey,StreamEventDto> result = new HashMap<>();
 
-        Optional<StreamState> oState = streamStateMultiService.findByStreamKey(key);
-        oState.ifPresent(local -> {
-            StreamState update = new StreamState(key, local.isEnabled(), alive);
-            Set<StreamEventType> events = streamStateMultiService.update(update);
-            aggregateEvents(key, events, eventMap);
-            messageSink(new ArrayList<>(eventMap.values()));
-        });
-        oState.ifPresentOrElse(unused ->{}, () -> log.warn("Changing stream alive '" + key + "' - stream not found"));
+
+        StreamState update = new StreamState(key, alive, alive);
+        streamStateMultiService.findByKey(key).ifPresent(local -> update.setEnabled(local.isEnabled()));
+        Set<StreamEventType> events = streamStateMultiService.update(update);
+        mergeEvents(key, events, result);
+        messageSink(new ArrayList<>(result.values()));
     }
 
 
@@ -192,16 +191,18 @@ public class StreamManager {
             // new stream
             if(s.getId() == null) {
                 newStreams.add(s);
-                aggregateEvent(key, StreamEventType.CREATED, result);
+                mergeEvent(key, StreamEventType.CREATED, result);
             }
             // existing stream
             else {
-                Stream l = streamMultiService.findByStreamKey(key)
-                    .orElseThrow(() -> new IllegalArgumentException(formatMsg("Stream '{}' not found", key)));
+                // .orElseThrow(() -> new IllegalArgumentException(formatMsg("Stream '{}' not found", key)));
+                //noinspection OptionalGetWithoutIsPresent
+                Stream l = streamMultiService.findByKey(key).get();
+
                 // stream has been changed
                 if (!s.equals(l)) {
                     modifiedStreams.add(s);
-                    aggregateEvent(key, StreamEventType.UPDATED, result);
+                    mergeEvent(key, StreamEventType.UPDATED, result);
                 }
             }
         });
@@ -225,28 +226,16 @@ public class StreamManager {
 
 
 
-    private synchronized Map<StreamKey,StreamEventDto> updateStreamStates(List<StreamState> updates) {
-        Map<StreamKey,StreamEventDto> result = new HashMap<>();
-
-        // new states
-        List<StreamState> newStates = new ArrayList<>();
-
-        updates.forEach(st -> {
-
-            StreamKey key = st.getStreamKey();
-            // new state
-            if(st.getId() == null) {
-                newStates.add(st);
-            }
-            else {
-                Set<StreamEventType> events = streamStateMultiService.update(st);
-                aggregateEvents(st.getStreamKey(), events, result);
-            }
-        });
-        streamStateMultiService.saveAll(newStates);
-
-        return result;
-    }
+//    private synchronized Map<StreamKey,StreamEventDto> updateStreamStates(List<StreamState> updates) {
+//        Map<StreamKey,StreamEventDto> result = new HashMap<>();
+//
+//        updates.forEach(st -> {
+//            Set<StreamEventType> events = streamStateMultiService.update(st);
+//            mergeEvents(st.getStreamKey(), events, result);
+//        });
+//
+//        return result;
+//    }
 
 
 
@@ -263,7 +252,7 @@ public class StreamManager {
             .forEach(st -> {
                 StreamState update = new StreamState(st.getStreamKey(), false, st.isAlive());
                 Set<StreamEventType> events = streamStateMultiService.update(update);
-                aggregateEvents(st.getStreamKey(), events, result);
+                mergeEvents(st.getStreamKey(), events, result);
             });
 
         return result;
@@ -271,139 +260,6 @@ public class StreamManager {
 
 
 
-
-
-
-
-
-
-
-    /*
-    private synchronized void addInternal(List<StreamDto> dtoList, boolean isFullUpdate) {
-
-        // events, generating in update process
-        Map<StreamKey,StreamEventDto> eventMap = new HashMap<>();
-
-        // Convert dto to Stream
-        List<Stream> updates = streamMapper.toEntityList(dtoList);
-
-        // Checking updates streams for duplicate names(strict)/titles/addresses
-        checkStreamNameDuplicates(updates);
-
-        // флаг, что в систему не было занесено ни одного стрима
-        boolean firstRun = streamMultiService.size() == 0;
-
-        // Список событий по изменению стримов (как Stream так и StreamState)
-        //Map<StreamKey,Set<StreamEventType>> stateEvents = new HashMap<>();
-
-        // -----------------------------------------------------------------------------------
-        // Streams SYNC ----------------------------------------------------------------------
-        // -----------------------------------------------------------------------------------
-
-        List<Stream> newStreams = new ArrayList<>();
-        List<Stream> modifiedStreams = new ArrayList<>();
-
-        updates.forEach( s -> {
-
-            StreamKey key = s.getStreamKey();
-            // new stream
-            if(s.getId() == null) {
-                newStreams.add(s);
-                aggregateEvent(key, StreamEventType.CREATED, eventMap);
-            }
-            // existing stream
-            else {
-                Stream l = streamMultiService.findByStreamKey(key)
-                    .orElseThrow(() -> new IllegalArgumentException(formatMsg("Stream '{}' not found", key)));
-                // stream has been changed
-                if (!s.equals(l)) {
-                    modifiedStreams.add(s);
-                    aggregateEvent(key, StreamEventType.UPDATED, eventMap);
-                }
-            }
-        });
-
-        // save all new streams
-        streamMultiService.saveAll(newStreams);
-
-        // update existing streams
-        streamMultiService.saveAll(modifiedStreams);
-
-        // do nothing with deleted streams (present only locally)
-
-        // -----------------------------------------------------------------------------------
-        // ToDo: периодически пылесосить сервисы StreamMultiService, StreamStateMultiService
-        //       на предмет устаревших стримов, т.к. удаление стримов не происходит
-        // -----------------------------------------------------------------------------------
-
-
-
-
-
-        // -----------------------------------------------------------------------------------
-        // StreamState SYNC ------------------------------------------------------------------
-        // -----------------------------------------------------------------------------------
-
-
-        // Convert dto to StreamState
-        List<StreamState> updateStates = streamStateMapper.toEntityList(dtoList);
-
-        // new states
-        List<StreamState> newStates = new ArrayList<>();
-
-        updateStates.forEach(st -> {
-
-            StreamKey key = st.getStreamKey();
-            // new state
-            if(st.getId() == null) {
-                newStates.add(st);
-                // no event generation - событие о добавлении стрима уже было создано выше, в Streams SYNC
-            }
-            else {
-
-                // read current alive status
-                if(!isFullUpdate) {
-                    StreamState l = streamStateMultiService.findByStreamKey(key)
-                        .orElseThrow(() -> new IllegalArgumentException(formatMsg("StreamState '{}' not found", key)));
-                    st.setAlive(l.isAlive());
-                }
-                Set<StreamEventType> events = streamStateMultiService.update(st);
-                aggregateEvents(st.getStreamKey(), events, eventMap);
-            }
-        });
-        streamStateMultiService.saveAll(newStates);
-
-
-        if(isFullUpdate) {
-
-            // Put to Map
-            Map<StreamKey,StreamState> updateStateMap = Maps.uniqueIndex(updateStates, StreamState::getStreamKey);
-
-            // finally find all states that exists only locally and mark them as disabled
-            streamStateMultiService.findAll().stream().filter(st -> !updateStateMap.containsKey(st.getStreamKey()))
-                .forEach(st -> {
-                    StreamState update = new StreamState(st.getStreamKey(), false, st.isAlive());
-                    Set<StreamEventType> events = streamStateMultiService.update(update);
-                    aggregateEvents(st.getStreamKey(), events, eventMap);
-                });
-            // Mediaserver (old version) on stream disabling do not set stream.enabled=false in API
-            // but simply remove this whole stream from API response
-        }
-
-
-        // -----------------------------------------------------------------------------------
-        // Publishing stream updates
-        // -----------------------------------------------------------------------------------
-
-        // Do not generate events if application is not initialization (have no streams stored)
-        // So do not generate events when streams was first time loaded into system (on startup)
-        if(!firstRun) {
-            messageSink(new ArrayList<>(eventMap.values()));
-        }
-        // -------------------------------------------------------------------------------------
-
-    }
-    */
 
 
     /**
@@ -428,37 +284,55 @@ public class StreamManager {
 //        // ---------------------------------------------------------------
 
 
-        log.debug("{}", events);
+        log.trace("{}", events);
+        streamEventSender.send(events);
     }
 
 
 
-    private void aggregateEvent(StreamKey key, StreamEventType event, Map<StreamKey,StreamEventDto> map) {
+    private void mergeEvent(StreamKey key, StreamEventType event, Map<StreamKey,StreamEventDto> map) {
 
-        // create new event
-        if (!map.containsKey(key)) {
-            map.put(key, new StreamEventDto(key, Set.of(event)));
-        }
-        // update to existing event
-        else {
-            map.get(key).getEventSet().add(event);
+
+        StreamEventDto tmp = map.putIfAbsent(key, new StreamEventDto(key, Sets.newHashSet(event)));
+        if (tmp != null) {
+            tmp.getEventSet().add(event);
         }
     }
 
+    private void mergeEvent(StreamEventDto event, Map<StreamKey,StreamEventDto> map) {
 
-    private void aggregateEvents(StreamKey key, Set<StreamEventType> events, Map<StreamKey,StreamEventDto> map) {
+        StreamEventDto tmp = map.putIfAbsent(event.getKey(), event);
+        if (tmp != null) {
+            tmp.getEventSet().addAll(event.getEventSet());
+        }
+    }
+
+    private void mergeEvents(StreamKey key, Set<StreamEventType> events, Map<StreamKey,StreamEventDto> map) {
 
         if(events.size() == 0) {
             return;
         }
 
-        // create new event
-        if (!map.containsKey(key)) {
-            map.put(key, new StreamEventDto(key, events));
+        StreamEventDto tmp = map.putIfAbsent(key, new StreamEventDto(key, events));
+        if (tmp != null) {
+            tmp.getEventSet().addAll(events);
         }
-        // update to existing event
-        else {
-            map.get(key).getEventSet().addAll(events);
+    }
+
+    private void mergeEvents(Map<StreamKey, StreamEventDto> source, Map<StreamKey, StreamEventDto> result) {
+
+        if(source.size() == 0) {
+            return;
+        }
+
+        for (StreamEventDto event : source.values()) {
+            StreamKey key = event.getKey();
+            if(result.containsKey(key)) {
+                result.get(key).getEventSet().addAll(event.getEventSet());
+            }
+            else {
+                result.put(key, event);
+            }
         }
     }
 

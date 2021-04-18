@@ -2,6 +2,7 @@ package ru.kvanttelecom.tv.streammonitoring.core.services._base;
 
 import lombok.extern.slf4j.Slf4j;
 import ru.kvanttelecom.tv.streammonitoring.core.caches.Cachelevel;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
 
 import javax.annotation.PostConstruct;
@@ -143,5 +144,9 @@ public abstract class Multicache<T extends AbstractEntity> {
 
     public int size() {
         return firstLevel.size();
+    }
+
+    public boolean containsKey(Long id) {
+        return firstLevel.containsKey(id);
     }
 }

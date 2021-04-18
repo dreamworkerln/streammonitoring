@@ -86,7 +86,7 @@ public class MediaServerEventHandler {
     private void stateChanged(MediaServerEvent event) {
         boolean alive = getMediaServerEventAlive(event);
         String aliveStr = alive ? "online" : "offline";
-        log.trace("State changed '{}': {}", event.getStreamKey(), aliveStr);
+        //log.trace("State changed '{}': {}", event.getStreamKey(), aliveStr);
         StreamKey key = event.getStreamKey();
         streamManager.changeAlive(key, alive);
     }

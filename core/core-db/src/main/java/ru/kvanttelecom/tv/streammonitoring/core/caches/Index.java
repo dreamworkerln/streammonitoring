@@ -68,6 +68,9 @@ public class Index<K,T> {
         return cache.size();
     }
 
+    public boolean containsKey(K key) {
+        return cache.containsKey(key);
+    }
 }
 
 

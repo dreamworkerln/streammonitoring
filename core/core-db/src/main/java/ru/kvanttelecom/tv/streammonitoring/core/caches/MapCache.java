@@ -20,9 +20,9 @@ public class MapCache<T extends AbstractEntity> implements Cachelevel<T>  {
 
     private final Index<Long,T> idIndex = new Index<>(AbstractEntity::getId);
 
-    @Getter
-    @Setter
-    private boolean autogenId = false;
+    //@Getter
+    //@Setter
+    //private boolean autogenId = false;
 
     public MapCache() {
         addIndex(idIndex);
@@ -58,7 +58,7 @@ public class MapCache<T extends AbstractEntity> implements Cachelevel<T>  {
     public T save(T t) {
 
         // Id auto generation
-        if(autogenId && t.getId() == null){Utils.fieldSetter("id", t, idGen.getAndIncrement());}
+        if(t.getId() == null){Utils.fieldSetter("id", t, idGen.getAndIncrement());}
 
         // update all indexes
         for (Index<?, T> index : indexes) {
@@ -73,7 +73,7 @@ public class MapCache<T extends AbstractEntity> implements Cachelevel<T>  {
     public List<T> saveAll(Iterable<T> list) {
 
         // Id auto generation
-        if(autogenId){list.forEach(t -> {if(t.getId() == null) Utils.fieldSetter("id", t, idGen.getAndIncrement());});}
+        list.forEach(t -> {if(t.getId() == null) Utils.fieldSetter("id", t, idGen.getAndIncrement());});
 
 
         // update all indexes
@@ -104,5 +104,10 @@ public class MapCache<T extends AbstractEntity> implements Cachelevel<T>  {
     @Override
     public int size() {
         return idIndex.size();
+    }
+
+    @Override
+    public boolean containsKey(Long id) {
+        return idIndex.containsKey(id);
     }
 }

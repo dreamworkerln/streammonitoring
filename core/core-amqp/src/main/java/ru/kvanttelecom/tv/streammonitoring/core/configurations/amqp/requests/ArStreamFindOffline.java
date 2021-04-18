@@ -4,6 +4,6 @@ public class ArStreamFindOffline extends ArAbstract {
 
     @Override
     public String toString() {
-        return " GET_OFFLINE_STREAMS";
+        return " FIND_STREAMS_OFFLINE";
     }
 }

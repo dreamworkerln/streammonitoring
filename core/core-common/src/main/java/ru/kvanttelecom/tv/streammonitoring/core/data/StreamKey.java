@@ -1,14 +1,17 @@
 package ru.kvanttelecom.tv.streammonitoring.core.data;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.dreamworkerln.spring.utils.common.annotations.Default;
 
 import java.util.Objects;
 
 @Data
 public class StreamKey {
-    private final String hostname;
-    private final String name;
+    private String hostname;
+    private String name;
 
     @Override
     public boolean equals(Object o) {
@@ -17,6 +20,13 @@ public class StreamKey {
         StreamKey streamKey = (StreamKey) o;
         return hostname.equals(streamKey.hostname) &&
             name.equals(streamKey.name);
+    }
+
+    @Default
+    @JsonCreator
+    public StreamKey(@JsonProperty("hostname")String hostname, @JsonProperty("name")String name) {
+        this.hostname = hostname;
+        this.name = name;
     }
 
     @Override

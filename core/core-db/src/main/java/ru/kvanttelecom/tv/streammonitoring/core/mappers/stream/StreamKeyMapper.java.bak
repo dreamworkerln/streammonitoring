@@ -1,0 +1,23 @@
+package ru.kvanttelecom.tv.streammonitoring.core.mappers.stream;
+
+import org.mapstruct.Mapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
+import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamKeyDto;
+import ru.kvanttelecom.tv.streammonitoring.core.entities.stream.Stream;
+import ru.kvanttelecom.tv.streammonitoring.core.mappers._base.AbstractMapper;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.ServerMultiService;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamMultiService;
+
+import javax.annotation.PostConstruct;
+
+@Mapper(config = AbstractMapper.class)
+public class StreamKeyMapper extends AbstractMapper<StreamKey, StreamKeyDto> {
+
+    @Autowired
+    private ServerMultiService serverMultiService;
+
+    public abstract StreamDto toDto(Stream stream);
+
+

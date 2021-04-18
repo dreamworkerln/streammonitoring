@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.AmqpId;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArAbstract;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArStreamFindAll;
+import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArStreamFindByKey;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArStreamFindOffline;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 
 import javax.annotation.PostConstruct;
@@ -58,8 +60,6 @@ public class StreamRpcClient {
 
     public List<StreamDto> findOffline() {
 
-
-
         List<StreamDto> result;
 
         log.trace("RPC REQUEST <FIND OFFLINE STREAMS>");
@@ -79,6 +79,56 @@ public class StreamRpcClient {
         log.trace("RPC RESPONSE: {}", result);
         return result;
     }
+
+//    public List<StreamDto> findStreamByKeyList(List<StreamKey> keys) {
+//
+//        List<StreamDto> result;
+//
+//        log.trace("RPC REQUEST <FIND STREAMS BY KEY>");
+//
+//        String exchanger = AmqpId.exchanger.stream.rpc.find;
+//        String routing = AmqpId.binding.stream.rpc.find;
+//
+//        ArStreamFindByKey request = new ArStreamFindByKey(keys);
+//        ParameterizedTypeReference<List<StreamDto>> typeRef = new ParameterizedTypeReference<>() {};
+//        result = template.convertSendAndReceiveAsType(exchanger, routing, request, typeRef);
+//
+//        if(result == null) {
+//            throw new RuntimeException("RPC <FIND STREAMS BY KEY>: NO RESPONSE");
+//        }
+//        log.trace("RPC RESPONSE: {}", result);
+//        return result;
+//    }
+
+
+    public StreamDto findStreamByKey(StreamKey key) {
+
+        StreamDto result;
+
+        log.trace("RPC REQUEST <FIND STREAMS BY KEY>");
+
+        String exchanger = AmqpId.exchanger.stream.rpc.find;
+        String routing = AmqpId.binding.stream.rpc.find;
+
+        ArStreamFindByKey request = new ArStreamFindByKey(key);
+        ParameterizedTypeReference<List<StreamDto>> typeRef = new ParameterizedTypeReference<>() {};
+        List<StreamDto> tmp = template.convertSendAndReceiveAsType(exchanger, routing, request, typeRef);
+
+        if(tmp == null) {
+            throw new RuntimeException("RPC <FIND STREAMS BY KEY>: NO RESPONSE");
+        }
+
+        if(tmp.size() == 0) {
+            result = null;
+        }
+        else {
+            result = tmp.get(0);
+        }
+
+        log.trace("RPC RESPONSE: {}", result);
+        return result;
+    }
+
 
     // ----------------------------------------------------------------------------
 

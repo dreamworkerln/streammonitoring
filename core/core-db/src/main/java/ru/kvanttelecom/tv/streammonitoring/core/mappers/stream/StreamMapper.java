@@ -78,7 +78,7 @@ public abstract class StreamMapper extends AbstractMapper<Stream, StreamDto> {
     // поэтому подсосем Id вручную (если есть)
     @BeforeMapping
     public void beforeMapping(StreamDto source, @MappingTarget Stream target) {
-        streamMultiService.findByStreamKey(source.getStreamKey())
+        streamMultiService.findByKey(source.getStreamKey())
             .ifPresent(l -> source.setId(l.getId()));
     }
 

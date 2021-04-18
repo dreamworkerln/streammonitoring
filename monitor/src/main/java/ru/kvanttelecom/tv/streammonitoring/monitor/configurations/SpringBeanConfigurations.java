@@ -13,6 +13,7 @@ import ru.kvanttelecom.tv.streammonitoring.core.mappers.streamstate.StreamStateM
 import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamMultiService;
 import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.StreamEventSender;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.StreamManager;
 import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.downloader.StreamDownloader;
 
@@ -73,13 +74,14 @@ public class SpringBeanConfigurations {
         StreamMultiService streamMultiService,
         StreamStateMultiService streamStateMultiService,
         StreamDownloader watcherStreamDownloader,
-        StreamDownloader mediaserverStreamDownloader) {
+        StreamDownloader mediaserverStreamDownloader,
+        StreamEventSender streamEventSender) {
 
         if(props.getWatcher().isUse()) {
-            return new StreamManager(streamMapper, streamStateMapper, streamMultiService, streamStateMultiService, watcherStreamDownloader, props);
+            return new StreamManager(streamMapper, streamStateMapper, streamMultiService, streamStateMultiService, watcherStreamDownloader, props, streamEventSender);
         }
         else {
-            return new StreamManager(streamMapper, streamStateMapper, streamMultiService, streamStateMultiService, mediaserverStreamDownloader, props);
+            return new StreamManager(streamMapper, streamStateMapper, streamMultiService, streamStateMultiService, mediaserverStreamDownloader, props, streamEventSender);
         }
     }
 }

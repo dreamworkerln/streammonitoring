@@ -113,7 +113,9 @@ public class WatcherStreamDownloader implements StreamDownloader {
             throwIfBlank(body, "Response <Flussonic Watcher>: json<camera> == empty");
         }
         catch (Exception rethrow) {
-            throw new RuntimeException("Watcher download camera error:", rethrow);
+            String message = formatMsg("Watcher download camera error, url: {}", url);
+
+            throw new RuntimeException(message, rethrow);
         }
 
 

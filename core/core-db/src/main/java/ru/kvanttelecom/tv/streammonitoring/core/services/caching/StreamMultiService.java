@@ -36,7 +36,7 @@ public class StreamMultiService extends Multicache<Stream> {
     }
 
 
-    public Optional<Stream> findByStreamKey(StreamKey key) {
+    public Optional<Stream> findByKey(StreamKey key) {
         return streamKeyIndex.findByKey(key);
     }
 

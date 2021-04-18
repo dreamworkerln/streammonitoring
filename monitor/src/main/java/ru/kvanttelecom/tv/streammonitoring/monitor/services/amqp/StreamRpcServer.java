@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.AmqpId;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArAbstract;
+import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArStreamFindByKey;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.ArStreamFindOffline;
 import ru.kvanttelecom.tv.streammonitoring.core.mappers.stream.StreamMapper;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
@@ -41,11 +42,11 @@ public class StreamRpcServer {
     private List<StreamDto> find(ArAbstract request) {
 
         List<StreamDto> result = null;
-        log.trace("AMQP request: {}", request);
+        //log.trace("AMQP request: {}", request);
 
 
         try {
-            log.trace("RPC REQUEST <FIND STREAMS> PARAMS: {}", request);
+            //log.trace("RPC REQUEST <FIND STREAMS> PARAMS: {}", request);
 
             if (request instanceof ArStreamFindOffline) {
 
@@ -54,8 +55,18 @@ public class StreamRpcServer {
                 List<Stream> offline = streamMultiService.findAllByKey(keys);
                 result = streamMapper.toDtoList(offline);
 
-                log.trace("RPC <FIND STREAMS> RESPONSE: {}", result);
+                //log.trace("RPC <FIND STREAMS> RESPONSE: {}", result);
             }
+            else if(request instanceof ArStreamFindByKey) {
+
+                StreamKey key = ((ArStreamFindByKey) request).getKey();
+                List<Stream> list = List.of(streamMultiService.findByKey(key).get());
+                result = streamMapper.toDtoList(list);
+
+                //log.trace("RPC <FIND STREAMS> RESPONSE: {}", result);
+            }
+
+
         }
         catch(Exception rethrow) {
             throw new RuntimeException("StreamRpcServer.find error:", rethrow);

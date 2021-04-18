@@ -35,7 +35,7 @@ public class StreamStateMultiService extends Multicache<StreamState> {
         problemIndex.setAutoAddition(false);
 
         MapCache<StreamState> mapCache = new MapCache<>();
-        mapCache.setAutogenId(true);
+        //mapCache.setAutogenId(true);
         mapCache.addIndex(streamKeyIndex);
         mapCache.addIndex(problemIndex);
         return new ArrayList<>(List.of(mapCache));
@@ -45,7 +45,7 @@ public class StreamStateMultiService extends Multicache<StreamState> {
 
 
 
-    public Optional<StreamState> findByStreamKey(StreamKey key) {
+    public Optional<StreamState> findByKey(StreamKey key) {
         return streamKeyIndex.findByKey(key);
     }
 
@@ -68,39 +68,57 @@ public class StreamStateMultiService extends Multicache<StreamState> {
 
         StreamKey key = update.getStreamKey();
 
-        StreamState local = streamKeyIndex.findByKey(key).orElse(new StreamState(key, false, false));
 
-        boolean localEnabled =  local.isEnabled();
-        boolean localAlive =    local.isAlive();
+
         boolean updateEnabled = update.isEnabled();
-        boolean updateAlive =   update.isAlive();
+        boolean updateAlive = update.isAlive();
 
-        // stream went down
-        if(localAlive && !updateAlive) {
-            local.setAlive(false);
-            problemIndex.save(local);
-            result.add(StreamEventType.OFFLINE);
-
+        StreamState local;
+        // local exists
+        if (streamKeyIndex.containsKey(key)) {
+            //noinspection OptionalGetWithoutIsPresent
+            local = streamKeyIndex.findByKey(key).get();
         }
-
-        // stream going up
-        if(!localAlive && updateAlive) {
-            local.setAlive(true);
-            problemIndex.delete(local);
-            result.add(StreamEventType.ONLINE);
+        // local doesn't exists
+        else {
+            local = new StreamState(key, !updateEnabled, !updateAlive);
         }
+        
+        boolean localEnabled = local.isEnabled();
+        boolean localAlive = local.isAlive();
 
         // stream was disabled
-        if(localEnabled && !updateEnabled) {
+        if (localEnabled && !updateEnabled) {
             local.setEnabled(false);
             result.add(StreamEventType.DISABLED);
         }
 
         // stream was enabled
-        if(!localEnabled && updateEnabled) {
+        if (!localEnabled && updateEnabled) {
             result.add(StreamEventType.ENABLED);
             local.setEnabled(true);
         }
+
+        // stream went down
+        if (localAlive && !updateAlive) {
+            local.setAlive(false);
+            problemIndex.save(local);
+            result.add(StreamEventType.OFFLINE);
+        }
+
+        // stream going up
+        if (!localAlive && updateAlive) {
+            local.setAlive(true);
+            problemIndex.delete(local);
+            result.add(StreamEventType.ONLINE);
+        }
+        
+
+        // save stream state
+        if (result.size() > 0) {
+            super.save(local);
+        }
+
         return result;
     }
 
@@ -131,6 +149,10 @@ public class StreamStateMultiService extends Multicache<StreamState> {
     @Override
     public List<StreamState> saveAll(Iterable<StreamState> list) {
         throw new UnsupportedOperationException("Use update(...) in iterator");
+    }
+
+    public boolean containsKey(StreamKey key) {
+        return streamKeyIndex.containsKey(key);
     }
 }
 

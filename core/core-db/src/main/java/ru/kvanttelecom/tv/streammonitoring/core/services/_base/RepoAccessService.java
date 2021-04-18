@@ -90,4 +90,9 @@ public abstract class RepoAccessService<T extends AbstractEntity> implements Cac
     public int size() {
         return (int)baseRepository.count();
     }
+
+    @Override
+    public boolean containsKey(Long id) {
+        return baseRepository.existsById(id);
+    }
 }

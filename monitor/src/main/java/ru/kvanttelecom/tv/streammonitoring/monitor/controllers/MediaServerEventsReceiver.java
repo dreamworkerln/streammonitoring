@@ -31,7 +31,7 @@ public class MediaServerEventsReceiver {
     @PostMapping("/mediaserver_events")
     public void processRequest(@RequestBody String json) {
         try {
-            log.trace("MEDIASERVER EVENT: {}", json);
+            //log.trace("MEDIASERVER EVENT: {}", json);
             List<MediaServerEvent> events = parser.getArray(json);
             eventHandler.applyEvents(events);
         }

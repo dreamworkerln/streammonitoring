@@ -10,7 +10,7 @@ import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMult
 
 import javax.annotation.PostConstruct;
 
-
+//uses = {StreamKeyMapper.class}
 @Mapper(config = AbstractMapper.class)
 public abstract class StreamStateMapper extends AbstractMapper<StreamState, StreamDto> {
 
@@ -46,7 +46,7 @@ public abstract class StreamStateMapper extends AbstractMapper<StreamState, Stre
     @AfterMapping
     public void afterMapping(StreamDto source, @MappingTarget StreamState target) {
 
-        streamStateMultiService.findByStreamKey(source.getStreamKey())
+        streamStateMultiService.findByKey(source.getStreamKey())
             .ifPresent(l -> Utils.fieldSetter("id", target , l.getId()));
     }
 }
