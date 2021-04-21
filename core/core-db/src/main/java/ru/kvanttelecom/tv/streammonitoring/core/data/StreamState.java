@@ -61,7 +61,7 @@ public class StreamState extends AbstractEntity {
         this.streamKey = streamKey;
         this.enabled = enabled;
         this.alive = alive;
-        rateStatistic.setWindowSize(5);
+        rateStatistic.setWindowSize(10);
     }
 
     public void update(boolean newAlive) {
