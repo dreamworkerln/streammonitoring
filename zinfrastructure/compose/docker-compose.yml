@@ -1,32 +1,50 @@
 version: '3.2'
 services:
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    restart: always
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: PASSWORD
+      POSTGRES_DB: postgres
+    restart: always
+    volumes:
+      - streammon_pg_data:/var/lib/postgresql/data/
+
   monitor:
     image: "dreamworkerln/streammonitoring-monitor"
     environment:
-      SPRING_APPLICATION_JSON: '{
-        "logging.level.ru.kvanttelecom.tv.streammonitoring": "INFO",
-        "server.port": "8015",
-        "client.protocol" :"http://",
-        "refresh.interval.sec": "10",
-        "check.stream.uniqueness": "true",
-        "media.server.list": "video1.streamer.ru,video2.streamer.ru,video3.streamer.ru",
-        "media.server.username": "USERNAME",
-        "media.server.password": "PASSWORD"
-      }'
+      spring_profiles_active: 
     restart: always
+    volumes:
+      - type: bind
+        source: ./monitor/application.properties
+        target: /application.properties
+      - type: bind
+        source: ./monitor/monitor.properties
+        target: /monitor.properties
     ports:
       - 8015:8015
+
 
   tbot:
     image: "dreamworkerln/streammonitoring-tbot"
     depends_on:
       - monitor
     environment:
-      SPRING_APPLICATION_JSON: '{
-        "logging.level.ru.kvanttelecom.tv.streammonitoring": "DEBUG",
-        "server.port": "8075",
-        "client.protocol" :"http://",
-        "telegram.bot.token": "TOKEN",
-        "telegram.bot.group": "GROUP_ID"
-      }'
+      spring_profiles_active: 
     restart: always
+    volumes:
+      - type: bind
+        source: ./tbot/application.properties
+        target: /application.properties
+      - type: bind
+        source: ./tbot/tbot.properties
+        target: /tbot.properties
+
+volumes:
+  streammon_pg_data:
