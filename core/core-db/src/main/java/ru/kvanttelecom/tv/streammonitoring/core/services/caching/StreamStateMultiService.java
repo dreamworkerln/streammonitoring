@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static ru.kvanttelecom.tv.streammonitoring.core.data.StreamState.STREAM_FLAPPING_MIN_RATE;
+
 @Service
 @Slf4j
 public class StreamStateMultiService extends Multicache<StreamState> {
@@ -147,8 +149,8 @@ public class StreamStateMultiService extends Multicache<StreamState> {
 
         return streamKeyIndex.findAll().stream()
             .filter(AbstractEntity::isEnabled)
-            .filter(StreamState::isFlapping)
-            .collect(Collectors.toMap(StreamState::getStreamKey, StreamState::getFlapRate));
+            .filter(st -> Math.abs(st.getFlapRateMoving()) > STREAM_FLAPPING_MIN_RATE)
+            .collect(Collectors.toMap(StreamState::getStreamKey, StreamState::getFlapRateMoving));
     };
 
 

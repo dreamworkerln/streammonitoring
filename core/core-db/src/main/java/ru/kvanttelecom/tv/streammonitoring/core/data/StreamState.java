@@ -3,6 +3,7 @@ package ru.kvanttelecom.tv.streammonitoring.core.data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
 import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService;
 
@@ -22,7 +23,7 @@ public class StreamState extends AbstractEntity {
 
     // минимальный порог фильтрации частоты изменения alive
     // при значениях частоты, ниже указанного стрим не будет отображен как флапающий
-    private static final double STREAM_FLAPPING_MIN_RATE = 1./600; // 1 раз в 600 сек
+    public static final double STREAM_FLAPPING_MIN_RATE = 1e-3; // 1 раз в 1000 сек
 
     // Порог минимального числа изменений alive
     // для начала вычисления частоты изменения alive стрима
@@ -35,11 +36,13 @@ public class StreamState extends AbstractEntity {
     @Getter
     private boolean alive = false;
 
-    @Getter
-    private boolean flapping = false;
+    //@Getter
+    //private boolean flapping = false;
 
     @Getter
-    private double flapRate = 0;
+    private double flapRateMoving = 0;
+
+    private final DescriptiveStatistics rateStatistic = new DescriptiveStatistics();
 
     // ---------------------------------------------------------------------------------------------
 
@@ -58,6 +61,7 @@ public class StreamState extends AbstractEntity {
         this.streamKey = streamKey;
         this.enabled = enabled;
         this.alive = alive;
+        rateStatistic.setWindowSize(5);
     }
 
     public void update(boolean newAlive) {
@@ -77,19 +81,18 @@ public class StreamState extends AbstractEntity {
             return;
         }
 
-        //if(aliveChangeCount.get() >= UPDATE_ALIVE_CHANGE_COUNT_MIN) {
-        int zzz = aliveChangeCount.get();
         Instant now = Instant.now();
         long duration = Duration.between(lastCalculateRateTime.getAndSet(now), now).toSeconds();
         if(duration > 0) {
-            flapRate = (double)aliveChangeCount.getAndSet(0) / duration;
-            flapping = flapRate > STREAM_FLAPPING_MIN_RATE;
+            int count = aliveChangeCount.getAndSet(0);
+            double flapRate = (double)count / duration;
+            rateStatistic.addValue(flapRate);
+            flapRateMoving = rateStatistic.getMean();
 
-            log.trace("Stream {}, cnt: {},  freq: {}", streamKey, zzz, flapRate);
-
+            if(Math.abs(flapRateMoving) > STREAM_FLAPPING_MIN_RATE){
+                log.trace("Stream {}, cnt: {},  freq: {}, moving: {}", streamKey, count, flapRate, flapRateMoving);
+            }
         }
-        //}
-
     }
 
 
