@@ -1,7 +1,7 @@
 # streammonitoring
 #### Flussonic media server streams monitoring and notification via telegram bot
 
-##NFO
+## DEV NFO
 
 #### bash-ncat webserver
 ```
@@ -44,7 +44,7 @@ jdk.management/com.sun.management.internal=ALL-UNNAMED
 
 
 
-####Running from IDE:
+#### Running from IDE:
 ```
 Set Working directory in Run Configurations for each project to:
 
