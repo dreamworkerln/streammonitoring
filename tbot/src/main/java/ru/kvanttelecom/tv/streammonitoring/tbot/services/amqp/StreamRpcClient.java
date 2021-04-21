@@ -94,7 +94,6 @@ public class StreamRpcClient {
         List<StreamDto> result;
 
         log.trace("RPC REQUEST <FIND STREAMS BY KEY>");
-
         AmqpRequest request = new AmqpFindAllStreamByKey(keys);
         ParameterizedTypeReference<AmqpStreamListResponse> responseTypeRef = new ParameterizedTypeReference<>() {};
         var response = template.convertSendAndReceiveAsType(exchanger, routing, request, responseTypeRef);

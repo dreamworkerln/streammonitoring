@@ -72,7 +72,7 @@ public class StreamRpcServer {
 
 
     @EventListener
-    private void handleContextRefresh(ContextRefreshedEvent event) {
+    public void handleContextRefresh(ContextRefreshedEvent event) {
         initHandlers();
     }
 
