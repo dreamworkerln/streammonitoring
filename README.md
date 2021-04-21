@@ -85,7 +85,14 @@ You may compile for yourself and use you own docker images names, edit
 ```   
 docker-build.sh
 ```   
-and use you oun image names, then edit
+Set you own image names  
+then run 
+```   
+docker-build.sh
+```
+then push images to dockerhub    
+<br>
+After edit  
 ```   
 zinfrastructure/compose/docker-compose.yml
 ```   
