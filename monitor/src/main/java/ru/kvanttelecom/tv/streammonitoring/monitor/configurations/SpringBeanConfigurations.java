@@ -13,9 +13,9 @@ import ru.kvanttelecom.tv.streammonitoring.core.mappers.streamstate.StreamStateM
 import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamMultiService;
 import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.StreamEventSender;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.StreamManager;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.downloader.StreamDownloader;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.stream.StreamEventSender;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamManager;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.downloader.StreamDownloader;
 
 import java.time.Duration;
 

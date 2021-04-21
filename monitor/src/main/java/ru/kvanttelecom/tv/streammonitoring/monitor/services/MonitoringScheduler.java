@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.StreamManager;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamManager;
 import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService;
 
 
@@ -33,11 +33,12 @@ public class MonitoringScheduler {
         log.trace("Monitor: update streams");
         //log.trace("MONITOR - UPDATE STREAMS ==============================================");
         manager.scanAll();
+
+        // calculate all streams flapping rates
+        manager.calculateFlap();
+
+        StreamStateMultiService.firstRun = false;
     }
-
-
-
-
 
     /**
      * Check duplicate streams (by name) on different flussonic media servers

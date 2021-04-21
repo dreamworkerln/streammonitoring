@@ -1,4 +1,4 @@
-package ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers;
+package ru.kvanttelecom.tv.streammonitoring.monitor.services.stream;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -14,8 +14,8 @@ import ru.kvanttelecom.tv.streammonitoring.core.mappers.streamstate.StreamStateM
 import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamMultiService;
 import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService;
 import ru.kvanttelecom.tv.streammonitoring.monitor.configurations.properties.MonitorProperties;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.StreamEventSender;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.downloader.StreamDownloader;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.stream.StreamEventSender;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.downloader.StreamDownloader;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
 
 import java.util.*;
@@ -78,7 +78,7 @@ public class StreamManager {
 
 
         // флаг, что в систему не было занесено ни одного стрима
-        boolean firstRun = streamMultiService.size() == 0;
+        //boolean firstRun = streamMultiService.size() == 0;
 
         // 1.
         List<StreamDto> dtoList = streamDownloader.getAll();
@@ -100,12 +100,16 @@ public class StreamManager {
         mergeEvents(u3, result);
 
         // 5.
-        if(!firstRun) {
+        if(!StreamStateMultiService.firstRun) {
             messageSink(new ArrayList<>(result.values()));
         }
     }
 
 
+    /**
+     * Stream was started
+     * @param key StreamKey
+     */
     public void start(StreamKey key) {
         Map<StreamKey,StreamEventDto> result = new HashMap<>();
 
@@ -117,7 +121,7 @@ public class StreamManager {
 
         // 1.
         StreamState updateState = new StreamState(key, true, false);
-        streamStateMultiService.findByKey(key).ifPresent(local -> updateState.setAlive(local.isAlive()));
+        streamStateMultiService.findByKey(key).ifPresent(local -> updateState.update(local.isAlive()));
         updateState.setEnabled(true);
         Set<StreamEventType> events = streamStateMultiService.update(updateState);
         mergeEvents(key, events, result);
@@ -241,6 +245,10 @@ public class StreamManager {
 
     // Mediaserver (old version) on stream disabling do not set stream.enabled=false in API
     // but simply remove this whole stream from API response
+
+    /**
+     * Mark streams state as Disabled for only locally existing streams
+     */
     private Map<StreamKey,StreamEventDto> checkExpiredStreamStats(List<StreamState> updates) {
         Map<StreamKey,StreamEventDto> result = new HashMap<>();
 
@@ -256,6 +264,14 @@ public class StreamManager {
             });
 
         return result;
+    }
+
+
+    /**
+     * Вычисляет частоты флапа всех стримов
+     */
+    public void calculateFlap() {
+        streamStateMultiService.findAll().forEach(StreamState::calculateRate);
     }
 
 
@@ -285,7 +301,7 @@ public class StreamManager {
 
 
         log.trace("{}", events);
-        streamEventSender.send(events);
+        //streamEventSender.send(events);
     }
 
 
@@ -335,6 +351,8 @@ public class StreamManager {
             }
         }
     }
+
+
 
 // =================================================================================================================
 

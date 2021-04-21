@@ -13,6 +13,7 @@ import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
 import ru.kvanttelecom.tv.streammonitoring.core.services._base.Multicache;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
 
+import javax.swing.text.html.Option;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
@@ -22,11 +23,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class StreamStateMultiService extends Multicache<StreamState> {
 
+    // Marker that system have not been initialized with new data
+    public static boolean firstRun = true;
+
+
+
     // all streams states
     private final Index<StreamKey, StreamState> streamKeyIndex = new Index<>(StreamState::getStreamKey);
 
     // streams with problems
     private final Index<StreamKey, StreamState> problemIndex = new Index<>(StreamState::getStreamKey);
+
 
 
 
@@ -83,7 +90,7 @@ public class StreamStateMultiService extends Multicache<StreamState> {
         else {
             local = new StreamState(key, !updateEnabled, !updateAlive);
         }
-        
+
         boolean localEnabled = local.isEnabled();
         boolean localAlive = local.isAlive();
 
@@ -101,20 +108,19 @@ public class StreamStateMultiService extends Multicache<StreamState> {
 
         // stream went down
         if (localAlive && !updateAlive) {
-            local.setAlive(false);
+            local.update(false);
             problemIndex.save(local);
             result.add(StreamEventType.OFFLINE);
         }
 
         // stream going up
         if (!localAlive && updateAlive) {
-            local.setAlive(true);
+            local.update(true);
             problemIndex.delete(local);
             result.add(StreamEventType.ONLINE);
         }
-        
 
-        // save stream state
+        // save stream state if have any changes with it
         if (result.size() > 0) {
             super.save(local);
         }
@@ -131,6 +137,24 @@ public class StreamStateMultiService extends Multicache<StreamState> {
         return problemIndex.findAll().stream()
             .filter(AbstractEntity::isEnabled).collect(Collectors.toList());
     }
+
+    /**
+     * Get flapping streams count
+     */
+    public Map<StreamKey,Double> getFlapCounts() {
+
+        // filter out disabled streams
+
+        return streamKeyIndex.findAll().stream()
+            .filter(AbstractEntity::isEnabled)
+            .filter(StreamState::isFlapping)
+            .collect(Collectors.toMap(StreamState::getStreamKey, StreamState::getFlapRate));
+    };
+
+
+
+
+
 
     /**
      * Get currently disabled streams

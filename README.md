@@ -55,4 +55,9 @@ relay - streammonitoring/relay
 or will got loaded wrong .properties files
 ``` 
 
+#### check that sensitive data not in repository
+```
+git log --pretty=format: --name-only --diff-filter=A  | sort -u | grep "\.properties"
+git log --pretty=format: --name-only --diff-filter=A  | sort -u | grep "docker"
+```
 

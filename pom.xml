@@ -111,6 +111,22 @@
             <version>20201115</version>
         </dependency>
 
+        <!--        &lt;!&ndash; https://mvnrepository.com/artifact/com.fasterxml.jackson.module/jackson-modules-java8 &ndash;&gt;-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.fasterxml.jackson.module</groupId>-->
+        <!--            <artifactId>jackson-modules-java8</artifactId>-->
+        <!--            <version>2.9.8</version>-->
+        <!--        </dependency>-->
+
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.module/jackson-module-parameter-names-->
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-parameter-names</artifactId>
+            <version>2.12.3</version>
+        </dependency>
+
+
+
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -175,6 +191,14 @@
             <version>5.1.0</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.javatuples/javatuples -->
+        <dependency>
+            <groupId>org.javatuples</groupId>
+            <artifactId>javatuples</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+
 
         <!-- local repository (firs clone from github and install locally) -->
         <dependency>
@@ -211,9 +235,8 @@
                         </path>
                     </annotationProcessorPaths>
                     <compilerArgs>
-                        <compilerArg>
-                            -Amapstruct.defaultComponentModel=spring
-                        </compilerArg>
+                        <compilerArg>-Amapstruct.defaultComponentModel=spring</compilerArg>
+                        <compilerArg>-parameters</compilerArg>
                     </compilerArgs>
                 </configuration>
             </plugin>
@@ -247,44 +270,44 @@
                         <exclude>monitor-tv*</exclude>
                         <exclude>relay-tv*</exclude>
                         <exclude>tbot-tv*</exclude>
-                        <exclude>utils-tv*</exclude>                        
+                        <exclude>utils-tv*</exclude>
                     </excludes>
                 </configuration>
             </plugin>
 
 
-<!--
-            &lt;!&ndash;
-            Will copy shared resources from 'core' project
-            into each subproject(module) where configuration.skip set to false
-            &ndash;&gt;
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.1.2</version>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>${project.groupId}</groupId>
-                                    <artifactId>core</artifactId>
-                                    <version>${project.version}</version>
-                                    <includes>**/*.yaml,**/*.properties,**/logback-spring.xml</includes>
-                                </artifactItem>
-                            </artifactItems>
-                            <outputDirectory>${project.build.directory}/classes/</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-           -->
+            <!--
+                        &lt;!&ndash;
+                        Will copy shared resources from 'core' project
+                        into each subproject(module) where configuration.skip set to false
+                        &ndash;&gt;
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-dependency-plugin</artifactId>
+                            <version>3.1.2</version>
+                            <configuration>
+                                <skip>true</skip>
+                            </configuration>
+                            <executions>
+                                <execution>
+                                    <goals>
+                                        <goal>unpack</goal>
+                                    </goals>
+                                    <configuration>
+                                        <artifactItems>
+                                            <artifactItem>
+                                                <groupId>${project.groupId}</groupId>
+                                                <artifactId>core</artifactId>
+                                                <version>${project.version}</version>
+                                                <includes>**/*.yaml,**/*.properties,**/logback-spring.xml</includes>
+                                            </artifactItem>
+                                        </artifactItems>
+                                        <outputDirectory>${project.build.directory}/classes/</outputDirectory>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                       -->
 
         </plugins>
     </build>

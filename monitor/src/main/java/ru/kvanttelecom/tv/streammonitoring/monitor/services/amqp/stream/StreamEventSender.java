@@ -1,4 +1,4 @@
-package ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp;
+package ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.stream;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Binding;

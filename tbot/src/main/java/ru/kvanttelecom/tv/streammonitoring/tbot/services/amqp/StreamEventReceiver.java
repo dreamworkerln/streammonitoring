@@ -37,20 +37,20 @@ public class StreamEventReceiver {
     @RabbitListener(queues = AmqpId.queue.stream.events.update)
     private void receive(List<StreamEventDto> update) {
 
-        try {
-            log.trace("STREAM EVENT: {}", update);
-            
-            StringBuilder sb = new StringBuilder();
-            for (StreamEventDto event : update) {
-                StreamDto stream = rpcClient.findStreamByKey(event.getKey());
-                String name = notBlank(stream.getTitle()) ? stream.getTitle() : stream.getName();
-                sb.append(name).append(": ").append(event.getEventSet());
-            }
-            bot.sendMessage(props.getBotGroup(), sb.toString());
-        }
-        catch(Exception rethrow) {
-            throw new RuntimeException("StreamRpcClient.receive error:", rethrow);
-        }
+//        try {
+//            log.trace("STREAM EVENT: {}", update);
+//
+//            StringBuilder sb = new StringBuilder();
+//            for (StreamEventDto event : update) {
+//                StreamDto stream = rpcClient.findStreamByKey(event.getKey());
+//                String name = notBlank(stream.getTitle()) ? stream.getTitle() : stream.getName();
+//                sb.append(name).append(": ").append(event.getEventSet()).append("\n");
+//            }
+//            bot.sendMessage(props.getBotGroup(), sb.toString());
+//        }
+//        catch(Exception rethrow) {
+//            throw new RuntimeException("StreamRpcClient.receive error:", rethrow);
+//        }
     }
 
 }

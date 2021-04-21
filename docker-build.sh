@@ -3,7 +3,7 @@
 # проверяем, установлен ли maven, если да, то собираем проект
 if command -v mvn &> /dev/null
 then
-  mvn -DskipTests package
+  mvn -DskipTests clean package
 fi
 
 docker build -t dreamworkerln/streammonitoring-tbot:latest -f zinfrastructure/docker/tbot/Dockerfile .

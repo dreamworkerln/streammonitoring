@@ -1,5 +1,6 @@
 package ru.kvanttelecom.tv.streammonitoring.tbot.services.telegram;
 
+import com.google.common.collect.Maps;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
@@ -9,23 +10,26 @@ import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.math3.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.dreamworkerln.spring.utils.common.threadpool.BlockingJobPool;
 import ru.dreamworkerln.spring.utils.common.threadpool.JobResult;
+import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 import ru.kvanttelecom.tv.streammonitoring.tbot.configurations.properties.TBotProperties;
 import ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp.StreamRpcClient;
 
 import javax.annotation.PostConstruct;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.springframework.util.StringUtils.*;
 import static ru.dreamworkerln.spring.utils.common.StringUtils.isBlank;
@@ -42,14 +46,18 @@ public class Telebot {
     // messages handlers
     private final ConcurrentMap<String, BiConsumer<Long, String>> handlers = new ConcurrentHashMap<>();
 
+    private DecimalFormat df;
+
     private TelegramBot bot;
 
 
+
     private static final String HELP_CONTENT =
-        "/streams - list of not working/flapping streams" +
-        "\n" + "/help - this help" +
-        "\n" + "/echo [text] - echo [text]" +
-        "\n" + "/ping - echo-reply";
+        "/streams - list of not working streams" +
+            "\n" + "/flap - list of flapping streams" +
+            "\n" + "/help - this help" +
+            "\n" + "/echo [text] - echo [text]" +
+            "\n" + "/ping - echo-reply";
 
     //private static final Splitter TELEGRAM_LENGTH_SPLITTER = Splitter.fixedLength(TELEGRAM_MAX_MESSAGE_LENGTH);
 
@@ -79,12 +87,18 @@ public class Telebot {
     private void postConstruct() {
         log.info("Staring telegram bot");
 
+        DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols(Locale.US);
+        otherSymbols.setDecimalSeparator('.');
+        df = new DecimalFormat("#.###", otherSymbols);
+
+
 
         handlers.put("/start",   this::start);
         handlers.put("/help",    this::help);
         handlers.put("/echo",    this::echo);
         handlers.put("/ping",    this::ping);
         handlers.put("/streams", this::streams);
+        handlers.put("/flap",    this::flapping);
 
 
 
@@ -164,17 +178,18 @@ public class Telebot {
         List<String> linesDown = new ArrayList<>();
         List<String> linesFlap = new ArrayList<>();
 
-        List<StreamDto> streams = rpcClient.findOffline();
+        // get offline streamKeys
+        List<StreamKey> keys = rpcClient.findOffline();
+
+        // get offline streams
+        List<StreamDto> streams = rpcClient.findStreamByKeyList(keys);
+
 
 
         for (StreamDto stream  : streams) {
 
-            String title = stream.getTitle();
+            String title = stream.getFriendlyTitle();
             boolean isFlapping = stream.isFlapping();
-
-            if(isBlank(title)) {
-                title = stream.getName() + "   (" + stream.getHostname() + ")";
-            }
 
             if(isFlapping) {
                 linesFlap.add(title + "\n");
@@ -204,6 +219,34 @@ public class Telebot {
 
         SendResponse response = sendMessage(chatId, sb.toString());
     }
+
+
+
+    private void flapping(Long chatId, String text) {
+
+        StringBuilder sb = new StringBuilder();
+        Map<StreamKey,Double> flapping = rpcClient.findFlappingStreams();
+
+        if(flapping.size() > 0) {
+            Map<StreamKey, StreamDto> keyToStream =
+                Maps.uniqueIndex(rpcClient.findStreamByKeyList(flapping.keySet()), StreamDto::getStreamKey);
+
+            List<Pair<StreamDto, Double>> list = new ArrayList<>();
+            flapping.forEach((key, value) -> list.add(new Pair<>(keyToStream.get(key), value)));
+            list.sort(Comparator.comparing(Pair::getSecond));
+
+            for (Pair<StreamDto, Double> pair : list) {
+                String title = pair.getFirst().getFriendlyTitle();
+                String freq = df.format(pair.getSecond());
+                sb.append(title).append("    (").append(freq).append("Hz)\n");
+            }
+        }
+        else {
+            sb.append("No info");
+        }
+        SendResponse response = sendMessage(chatId, sb.toString());
+    }
+
 
 
     private List<String> stringSplitter(String text) {

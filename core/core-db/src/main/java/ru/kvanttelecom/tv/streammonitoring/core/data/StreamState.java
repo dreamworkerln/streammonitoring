@@ -4,6 +4,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
+import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Internal stream status info
@@ -14,33 +20,79 @@ public class StreamState extends AbstractEntity {
     private static final int STREAM_MAX_LEVEL = 10;
     private static final int STREAM_THRESHOLD_LEVEL = (int)(STREAM_MAX_LEVEL * 0.7);
 
-    private static final Double STREAM_FLAPPING_MIN_RATE = 1./600; // 1 раз в 10 мин
+    // минимальный порог фильтрации частоты изменения alive
+    // при значениях частоты, ниже указанного стрим не будет отображен как флапающий
+    private static final double STREAM_FLAPPING_MIN_RATE = 1./600; // 1 раз в 600 сек
 
+    // Порог минимального числа изменений alive
+    // для начала вычисления частоты изменения alive стрима
+    private static final int UPDATE_ALIVE_CHANGE_COUNT_MIN = 10;
 
-    // Порог минимального числа изменений update.alive
-    // Для начала вычисления частоты изменения update.alive стрима
-    //public static final int UPDATE_ALIVE_CHANGE_COUNT_MIN = 10;
-
-    // how many times StreamUpdate.alive was changed since last calculation
-    //private final AtomicInteger updateAliveChangeCount = new AtomicInteger();
-
-    // время последнего вычисления LevelChangeRps
-    //private final AtomicReference<Instant> lastUpdateAliveCalcTime = new AtomicReference<>(Instant.now());
-
-    private int level = 0;
-
-    @Getter
-    @Setter
-    private boolean alive = false;
 
     @Getter
     private final StreamKey streamKey;
+
+    @Getter
+    private boolean alive = false;
+
+    @Getter
+    private boolean flapping = false;
+
+    @Getter
+    private double flapRate = 0;
+
+    // ---------------------------------------------------------------------------------------------
+
+    // уровень для гистерезиса
+    private int level = 0;
+
+    // Количество изменений alive с момента предыдущего расчета частоты
+    // how many times StreamUpdate.alive was changed since last calculation
+    private final AtomicInteger aliveChangeCount = new AtomicInteger();
+
+    // время последнего вычисления частоты
+    private final AtomicReference<Instant> lastCalculateRateTime = new AtomicReference<>(Instant.now());
+
 
     public StreamState(StreamKey streamKey, boolean enabled, boolean alive) {
         this.streamKey = streamKey;
         this.enabled = enabled;
         this.alive = alive;
     }
+
+    public void update(boolean newAlive) {
+        alive = newAlive;
+
+        // calculate flapping frequency
+        if(alive && !StreamStateMultiService.firstRun) {
+            aliveChangeCount.incrementAndGet();
+        }
+    }
+
+
+
+    public void calculateRate() {
+
+        if(StreamStateMultiService.firstRun) {
+            return;
+        }
+
+        //if(aliveChangeCount.get() >= UPDATE_ALIVE_CHANGE_COUNT_MIN) {
+        int zzz = aliveChangeCount.get();
+        Instant now = Instant.now();
+        long duration = Duration.between(lastCalculateRateTime.getAndSet(now), now).toSeconds();
+        if(duration > 0) {
+            flapRate = (double)aliveChangeCount.getAndSet(0) / duration;
+            flapping = flapRate > STREAM_FLAPPING_MIN_RATE;
+
+            log.trace("Stream {}, cnt: {},  freq: {}", streamKey, zzz, flapRate);
+
+        }
+        //}
+
+    }
+
+
 
     @Override
     public String toString() {
@@ -50,8 +102,21 @@ public class StreamState extends AbstractEntity {
             ", alive=" + alive +
             '}';
     }
+}
 
-    //
+
+
+
+
+
+
+
+
+
+
+
+
+//
 //    /**
 //     * Check if stream status has been changed (going online/offline/flapping)
 //     */
@@ -115,7 +180,7 @@ public class StreamState extends AbstractEntity {
 
 
 
-    // Значение StreamUpdate.alive при последнем обновлении состояния стрима
+// Значение StreamUpdate.alive при последнем обновлении состояния стрима
 //    @Getter
 //    @Setter
 //    private boolean lastUpdateAlive;
@@ -157,4 +222,3 @@ public class StreamState extends AbstractEntity {
 
 
 
-}

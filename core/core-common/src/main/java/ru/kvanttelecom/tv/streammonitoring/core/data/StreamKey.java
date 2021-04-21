@@ -10,8 +10,9 @@ import java.util.Objects;
 
 @Data
 public class StreamKey {
-    private String hostname;
-    private String name;
+
+    private final String hostname;
+    private final String name;
 
     @Override
     public boolean equals(Object o) {
@@ -24,7 +25,7 @@ public class StreamKey {
 
     @Default
     @JsonCreator
-    public StreamKey(@JsonProperty("hostname")String hostname, @JsonProperty("name")String name) {
+    public StreamKey(String hostname, String name) {
         this.hostname = hostname;
         this.name = name;
     }

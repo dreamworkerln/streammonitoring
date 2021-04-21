@@ -1,4 +1,4 @@
-package ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.downloader;
+package ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.downloader;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -47,6 +48,7 @@ public class CoreCommonSpringBeanConfigurations {
     }
     
 
+
     @Primary
     @Bean
     public ObjectMapper objectMapper() {
@@ -58,6 +60,10 @@ public class CoreCommonSpringBeanConfigurations {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC);
+        //mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        mapper.registerModule(new ParameterNamesModule());
+
+        //mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         //mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         //mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true);
@@ -75,6 +81,7 @@ public class CoreCommonSpringBeanConfigurations {
         // will write as string ISO 8601
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+        mapper.registerModule(new ParameterNamesModule());
         //mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         //mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

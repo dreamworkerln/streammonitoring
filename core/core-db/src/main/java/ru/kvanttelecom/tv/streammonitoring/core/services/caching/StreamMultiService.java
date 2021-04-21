@@ -40,7 +40,7 @@ public class StreamMultiService extends Multicache<Stream> {
         return streamKeyIndex.findByKey(key);
     }
 
-    public List<Stream> findAllByKey(List<StreamKey> keys) {
+    public List<Stream> findAllByKey(Iterable<StreamKey> keys) {
         return streamKeyIndex.findAllByKeys(keys);
     }
 

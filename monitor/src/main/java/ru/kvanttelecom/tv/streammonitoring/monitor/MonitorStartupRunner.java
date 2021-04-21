@@ -1,5 +1,6 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -19,6 +20,7 @@ public class MonitorStartupRunner extends BaseStartupRunner {
     @Autowired
     private MonitorProperties props;
 
+    @SneakyThrows
     @Override
     public void run(ApplicationArguments args) {
         super.run(args);
@@ -26,7 +28,7 @@ public class MonitorStartupRunner extends BaseStartupRunner {
     }
 
     private void addServer(String domainName) {
-        String hostname = domainName.split("\\.")[0].toLowerCase();
+        String hostname = domainName.split("\\.", 2)[0].toLowerCase();
         Server server = new Server(hostname, domainName);
         server = serverMultiService.save(server);
     }

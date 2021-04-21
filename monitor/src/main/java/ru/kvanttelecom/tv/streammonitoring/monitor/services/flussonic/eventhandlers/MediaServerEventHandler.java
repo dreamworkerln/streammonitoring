@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.enums.MediaServerEventType;
 import ru.kvanttelecom.tv.streammonitoring.monitor.data.events.mediaserver.MediaServerEvent;
-import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.importers.StreamManager;
+import ru.kvanttelecom.tv.streammonitoring.monitor.services.stream.StreamManager;
 import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService;
 
 import javax.annotation.PostConstruct;
