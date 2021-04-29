@@ -1,29 +1,37 @@
 package ru.kvanttelecom.tv.streammonitoring.core.services.caching;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import ru.dreamworkerln.spring.utils.common.Utils;
 import ru.kvanttelecom.tv.streammonitoring.core.caches.Cachelevel;
 import ru.kvanttelecom.tv.streammonitoring.core.caches.Index;
 import ru.kvanttelecom.tv.streammonitoring.core.caches.MapCache;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamState;
-import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
 import ru.kvanttelecom.tv.streammonitoring.core.services._base.Multicache;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
+import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamStateTypes;
 
-import javax.swing.text.html.Option;
+
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static ru.kvanttelecom.tv.streammonitoring.core.data.StreamState.STREAM_FLAPPING_MIN_RATE;
+
+// Predicate.not()
+
 
 @Service
 @Slf4j
 public class StreamStateMultiService extends Multicache<StreamState> {
+
+
+    // Стримы, флапающее с большим периодом не отображаются
+    public static double STREAM_FLAPPING_MIN_PERIOD = 1000;
+
 
     // Marker that system have not been initialized with new data
     public static boolean firstRun = true;
@@ -34,19 +42,26 @@ public class StreamStateMultiService extends Multicache<StreamState> {
     private final Index<StreamKey, StreamState> streamKeyIndex = new Index<>(StreamState::getStreamKey);
 
     // streams with problems
-    private final Index<StreamKey, StreamState> problemIndex = new Index<>(StreamState::getStreamKey);
+    private final Index<StreamKey, StreamState> offlineIndex = new Index<>(StreamState::getStreamKey);
+    // streams with problems
+    private final Index<StreamKey, StreamState> flappingIndex = new Index<>(StreamState::getStreamKey);
+
+
+    private final ConcurrentMap<StreamKey, Object> statusWaits = new ConcurrentHashMap<>();
 
 
 
-
+    // pattern method - initializing additional indexes
     @Override
     protected List<Cachelevel<StreamState>> addLevels() {
-        problemIndex.setAutoAddition(false);
+
+        offlineIndex.setAutoAddition(false);
+        flappingIndex.setAutoAddition(false);
 
         MapCache<StreamState> mapCache = new MapCache<>();
-        //mapCache.setAutogenId(true);
         mapCache.addIndex(streamKeyIndex);
-        mapCache.addIndex(problemIndex);
+        mapCache.addIndex(offlineIndex);
+        mapCache.addIndex(flappingIndex);
         return new ArrayList<>(List.of(mapCache));
     }
 
@@ -77,8 +92,6 @@ public class StreamStateMultiService extends Multicache<StreamState> {
 
         StreamKey key = update.getStreamKey();
 
-
-
         boolean updateEnabled = update.isEnabled();
         boolean updateAlive = update.isAlive();
 
@@ -87,44 +100,72 @@ public class StreamStateMultiService extends Multicache<StreamState> {
         if (streamKeyIndex.containsKey(key)) {
             //noinspection OptionalGetWithoutIsPresent
             local = streamKeyIndex.findByKey(key).get();
+
+            boolean localEnabled = local.isEnabled();
+            boolean localAlive = local.isAlive();
+
+            boolean res;
+
+            //local.setEnabled(false);
+
+            // stream was disabled
+            if (localEnabled && !updateEnabled) {
+                res = local.update(StreamStateTypes.ENABLENESS, false);
+                if(res) {
+                    result.add(StreamEventType.DISABLED);
+                }
+            }
+
+            // stream was enabled
+            if (!localEnabled && updateEnabled) {
+                res = local.update(StreamStateTypes.ENABLENESS, true);
+                if(res) {
+                    result.add(StreamEventType.ENABLED);
+                }
+            }
+
+            // stream went down
+            if (localAlive && !updateAlive) {
+                res = local.update(StreamStateTypes.ALIVENESS, false);
+                offlineIndex.save(local);
+                if(res) {
+                    result.add(StreamEventType.OFFLINE);
+                }
+            }
+
+            // stream going up
+            if (!localAlive && updateAlive) {
+                res = local.update(StreamStateTypes.ALIVENESS, true);
+                offlineIndex.delete(local);
+                if(res) {
+                    result.add(StreamEventType.ONLINE);
+                }
+            }
+
+            // save stream state if have any changes with it
+            if (result.size() > 0) {
+                super.save(local);
+            }
         }
         // local doesn't exists
+        // Initialize new StreamState
         else {
-            local = new StreamState(key, !updateEnabled, !updateAlive);
-        }
 
-        boolean localEnabled = local.isEnabled();
-        boolean localAlive = local.isAlive();
-
-        // stream was disabled
-        if (localEnabled && !updateEnabled) {
-            local.setEnabled(false);
-            result.add(StreamEventType.DISABLED);
-        }
-
-        // stream was enabled
-        if (!localEnabled && updateEnabled) {
-            result.add(StreamEventType.ENABLED);
-            local.setEnabled(true);
-        }
-
-        // stream went down
-        if (localAlive && !updateAlive) {
-            local.update(false);
-            problemIndex.save(local);
-            result.add(StreamEventType.OFFLINE);
-        }
-
-        // stream going up
-        if (!localAlive && updateAlive) {
-            local.update(true);
-            problemIndex.delete(local);
-            result.add(StreamEventType.ONLINE);
-        }
-
-        // save stream state if have any changes with it
-        if (result.size() > 0) {
+            local = new StreamState(key, updateEnabled, updateAlive);
             super.save(local);
+
+            if(!updateAlive) {
+                offlineIndex.save(local);
+            }
+
+            // notify all threads waiting for this StreamState
+            Object lock = statusWaits.get(key);
+            if(lock != null) {
+                synchronized (lock) {
+                    lock.notifyAll();
+                    statusWaits.remove(key);
+                }
+            }
         }
 
         return result;
@@ -132,29 +173,27 @@ public class StreamStateMultiService extends Multicache<StreamState> {
 
 
     /**
-     * Get currently offline streams
+     * Get currently offline streams that not flapping
      */
     public List<StreamState> getOffline() {
         // filter out disabled streams
-        return problemIndex.findAll().stream()
-            .filter(AbstractEntity::isEnabled).collect(Collectors.toList());
+        return offlineIndex.findAll();
+
+//        return offlineIndex.findAll().stream()
+//            //.filter(st -> st.getPeriod() > STREAM_FLAPPING_MIN_PERIOD)
+//            .collect(Collectors.toList());
+
     }
 
     /**
-     * Get flapping streams count
+     * Get currently flapping streams
      */
-    public Map<StreamKey,Double> getFlapCounts() {
-
-        // filter out disabled streams
-
+    public Map<StreamKey, Double> getPeriods() {
         return streamKeyIndex.findAll().stream()
-            .filter(AbstractEntity::isEnabled)
-            .filter(st -> Math.abs(st.getFlapRateMoving()) > STREAM_FLAPPING_MIN_RATE)
-            .collect(Collectors.toMap(StreamState::getStreamKey, StreamState::getFlapRateMoving));
-    };
+            .filter(st -> st.getPeriod() <= STREAM_FLAPPING_MIN_PERIOD)
+            .collect(Collectors.toMap(StreamState::getStreamKey, StreamState::getPeriod));
 
-
-
+    }
 
 
 
@@ -163,7 +202,7 @@ public class StreamStateMultiService extends Multicache<StreamState> {
      */
     public List<StreamState> getDisabled() {
         return streamKeyIndex.findAll().stream()
-            .filter(Predicate.not(AbstractEntity::isEnabled)).collect(Collectors.toList());
+            .filter(Predicate.not(StreamState::isEnabled)).collect(Collectors.toList());
     }
 
 
@@ -180,17 +219,28 @@ public class StreamStateMultiService extends Multicache<StreamState> {
     public boolean containsKey(StreamKey key) {
         return streamKeyIndex.containsKey(key);
     }
+
+    @SneakyThrows
+    public Optional<StreamState> findByKeyWait(StreamKey key) {
+
+        Optional<StreamState> result = streamKeyIndex.findByKey(key);
+
+        if(result.isEmpty()) {
+            // wait for streamKeyIndex update with timeout
+            Object lock = statusWaits.computeIfAbsent(key, sk -> new Object());
+            synchronized (lock) {
+                lock.wait(1000);
+            }
+            result = streamKeyIndex.findByKey(key);
+        }
+        return result;
+    }
+
 }
 
 
 
    /*
-
-
-    public StreamState get(StreamKey key) {
-        return map.get(key);
-    }
-
 
     *//**
  * Add new Stream

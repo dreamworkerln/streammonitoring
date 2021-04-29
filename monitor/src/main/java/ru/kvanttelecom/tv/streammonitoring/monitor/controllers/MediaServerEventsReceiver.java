@@ -1,6 +1,8 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,13 +17,13 @@ import java.util.List;
 @Slf4j
 public class MediaServerEventsReceiver {
 
+    Marker marker = MarkerFactory.getMarker("MEDIASERVER_EVENT");
+
     @Autowired
     private MediaServerEventParser parser;
 
-
     @Autowired
     private MediaServerEventHandler eventHandler;
-
 
 
     /**
@@ -31,7 +33,7 @@ public class MediaServerEventsReceiver {
     @PostMapping("/mediaserver_events")
     public void processRequest(@RequestBody String json) {
         try {
-            //log.trace("MEDIASERVER EVENT: {}", json);
+            log.trace(marker, "MEDIASERVER EVENT: {}", json);
             List<MediaServerEvent> events = parser.getArray(json);
             eventHandler.applyEvents(events);
         }

@@ -1,8 +1,6 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp.stream;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.dreamworkerln.spring.utils.common.annotations.Default;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.annotations.AmqpController;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.annotations.AmqpMethod;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.AmqpFindAllStreamByKey;
@@ -53,8 +51,8 @@ public class AmqpStreamController {
 
     @AmqpMethod
     public AmqpFindFlappingStreamKeyResponse findFlappingStreams(AmqpFindFlappingStream request) {
-        Map<StreamKey,Double> flaps = streamStateMultiService.getFlapCounts();
-        return new AmqpFindFlappingStreamKeyResponse(flaps);
+        Map<StreamKey,Double> periods = streamStateMultiService.getPeriods();
+        return new AmqpFindFlappingStreamKeyResponse(periods);
     }
 
 }

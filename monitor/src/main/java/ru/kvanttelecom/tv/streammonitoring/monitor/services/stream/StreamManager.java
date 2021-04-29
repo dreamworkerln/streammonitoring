@@ -2,6 +2,7 @@ package ru.kvanttelecom.tv.streammonitoring.monitor.services.stream;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamState;
@@ -19,10 +20,13 @@ import ru.kvanttelecom.tv.streammonitoring.monitor.services.flussonic.downloader
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static ru.dreamworkerln.spring.utils.common.StringUtils.formatMsg;
+
 
 
 /**
@@ -35,6 +39,7 @@ import static ru.dreamworkerln.spring.utils.common.StringUtils.formatMsg;
 @Transactional
 @Slf4j
 public class StreamManager {
+
 
     private final StreamMapper streamMapper;
     private final StreamStateMapper streamStateMapper;
@@ -120,10 +125,11 @@ public class StreamManager {
 
 
         // 1.
-        StreamState updateState = new StreamState(key, true, false);
-        streamStateMultiService.findByKey(key).ifPresent(local -> updateState.update(local.isAlive()));
-        updateState.setEnabled(true);
-        Set<StreamEventType> events = streamStateMultiService.update(updateState);
+        AtomicBoolean localAlive = new AtomicBoolean(false);
+        streamStateMultiService.findByKey(key).ifPresent(local -> localAlive.set(local.isAlive()));
+        StreamState stateUpdate = new StreamState(key, true, localAlive.get());
+
+        Set<StreamEventType> events = streamStateMultiService.update(stateUpdate);
         mergeEvents(key, events, result);
 
         // 2.
@@ -149,12 +155,15 @@ public class StreamManager {
      */
     public void stop(StreamKey key) {
 
-        // 1. Обновить StreamStatus - указать что enabled = false, alive = false
+        // 1. Обновить StreamStatus - указать что enabled = false, alive = взять из локального, если есть
 
         Map<StreamKey,StreamEventDto> result = new HashMap<>();
 
-        StreamState update = new StreamState(key, false, false);
-        Set<StreamEventType> events = streamStateMultiService.update(update);
+        AtomicBoolean localAlive = new AtomicBoolean(false);
+        streamStateMultiService.findByKey(key).ifPresent(local -> localAlive.set(local.isAlive()));
+        StreamState stateUpdate = new StreamState(key, false, localAlive.get());
+
+        Set<StreamEventType> events = streamStateMultiService.update(stateUpdate);
         mergeEvents(key, events, result);
         messageSink(new ArrayList<>(result.values()));
     }
@@ -163,18 +172,34 @@ public class StreamManager {
     /**
      * Update aliveness of Stream
      */
+    @SneakyThrows
     public void changeAlive(StreamKey key, boolean alive) {
 
         // 1. Обновить StreamStatus enabled взять что есть, alive взять из обновления
 
+        // update:
+        // 1. Подождать немного, если streamStateMultiService не может найти stream
+        // Если timeout, то дальше не обрабатывать и не распространять событие.
+
         Map<StreamKey,StreamEventDto> result = new HashMap<>();
 
+        Optional<StreamState> state = streamStateMultiService.findByKeyWait(key);
 
-        StreamState update = new StreamState(key, alive, alive);
-        streamStateMultiService.findByKey(key).ifPresent(local -> update.setEnabled(local.isEnabled()));
-        Set<StreamEventType> events = streamStateMultiService.update(update);
-        mergeEvents(key, events, result);
-        messageSink(new ArrayList<>(result.values()));
+        state.ifPresent(local -> {
+            StreamState update = new StreamState(key, local.isEnabled(), alive);
+            Set<StreamEventType> events = streamStateMultiService.update(update);
+            mergeEvents(key, events, result);
+            messageSink(new ArrayList<>(result.values()));
+        });
+
+//      Map<StreamKey,StreamEventDto> result = new HashMap<>();
+//      StreamState update = new StreamState(key, alive, alive);
+//      streamStateMultiService.findByKey(key).ifPresent(local -> update.setEnabled(local.isEnabled()));
+//      Set<StreamEventType> events = streamStateMultiService.update(update);
+//      mergeEvents(key, events, result);
+//      messageSink(new ArrayList<>(result.values()));
+
+
     }
 
 
@@ -267,12 +292,12 @@ public class StreamManager {
     }
 
 
-    /**
-     * Вычисляет частоты флапа всех стримов
-     */
-    public void calculateFlap() {
-        streamStateMultiService.findAll().forEach(StreamState::calculateRate);
-    }
+//    /**
+//     * Вычисляет частоты флапа всех стримов
+//     */
+//    public void calculateFlap() {
+//        streamStateMultiService.findAll().forEach(StreamState::calculateRate);
+//    }
 
 
 
@@ -282,6 +307,15 @@ public class StreamManager {
      * Receive here all calculated updates about streams
      */
     private void messageSink(List<StreamEventDto> events) {
+
+//        // filter out stream with flapping
+//        events = events.stream().filter(e -> {
+//            StreamKey key = e.getKey();
+//            AtomicBoolean isFlapping = new AtomicBoolean(false);
+//            streamStateMultiService.findByKey(key)
+//                .ifPresent(st -> isFlapping.set(st.getFlapRateMoving() > STREAM_FLAPPING_MIN_RATE));
+//            return !isFlapping.get();
+//        }).collect(Collectors.toList());
 
         if(events.size() == 0) {
             return;
@@ -300,8 +334,8 @@ public class StreamManager {
 //        // ---------------------------------------------------------------
 
 
-        log.trace("{}", events);
-        //streamEventSender.send(events);
+        log.trace("MONITOR: {}", events);
+        streamEventSender.send(events);
     }
 
 

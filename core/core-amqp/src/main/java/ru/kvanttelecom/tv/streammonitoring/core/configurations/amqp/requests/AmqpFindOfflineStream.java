@@ -1,10 +1,8 @@
 package ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests;
 
 
-public class AmqpFindOfflineStream extends AmqpRequest {
+import lombok.Data;
 
-    @Override
-    public String toString() {
-        return "FIND_STREAMS_OFFLINE";
-    }
+@Data
+public class AmqpFindOfflineStream extends AmqpRequest {
 }

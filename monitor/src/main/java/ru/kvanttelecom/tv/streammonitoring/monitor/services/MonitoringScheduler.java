@@ -1,6 +1,7 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,9 @@ public class MonitoringScheduler {
     @Autowired
     private StreamStateMultiService stateService;
 
+    @Autowired
+    RabbitListenerEndpointRegistry registry;
+
     /**
      * Watcher import scheduler
      */
@@ -34,10 +38,14 @@ public class MonitoringScheduler {
         //log.trace("MONITOR - UPDATE STREAMS ==============================================");
         manager.scanAll();
 
-        // calculate all streams flapping rates
-        manager.calculateFlap();
-
-        StreamStateMultiService.firstRun = false;
+        // post-startup
+        if(StreamStateMultiService.firstRun) {
+            StreamStateMultiService.firstRun = false;
+            // enabling mq-server 'find' endpoint to handle clients 'find' requests
+            // because without scanAll() initialization
+            // there was not enough data to 'find' requests
+            registry.getListenerContainer("find").start();
+        }
     }
 
     /**

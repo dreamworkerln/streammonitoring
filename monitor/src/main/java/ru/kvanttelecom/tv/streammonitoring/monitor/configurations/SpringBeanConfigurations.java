@@ -78,10 +78,12 @@ public class SpringBeanConfigurations {
         StreamEventSender streamEventSender) {
 
         if(props.getWatcher().isUse()) {
-            return new StreamManager(streamMapper, streamStateMapper, streamMultiService, streamStateMultiService, watcherStreamDownloader, props, streamEventSender);
+            return new StreamManager(streamMapper, streamStateMapper, streamMultiService, streamStateMultiService,
+                watcherStreamDownloader, props, streamEventSender);
         }
         else {
-            return new StreamManager(streamMapper, streamStateMapper, streamMultiService, streamStateMultiService, mediaserverStreamDownloader, props, streamEventSender);
+            return new StreamManager(streamMapper, streamStateMapper, streamMultiService, streamStateMultiService,
+                mediaserverStreamDownloader, props, streamEventSender);
         }
     }
 }

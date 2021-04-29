@@ -1,6 +1,9 @@
 package ru.kvanttelecom.tv.streammonitoring.monitor.services.amqp;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.BeansException;
@@ -30,9 +33,11 @@ import java.util.function.Function;
 @Slf4j
 public class StreamRpcServer {
 
+    Marker marker = MarkerFactory.getMarker("AMQP_MARKER");
+
 
     //     <RequestClass, handler>
-    private Map<String, AmqpMethodHandler> handlers = new HashMap<>();
+    private final Map<String, AmqpMethodHandler> handlers = new HashMap<>();
 
     @Autowired
     ApplicationContext context;
@@ -42,28 +47,24 @@ public class StreamRpcServer {
 
 
 
-
-
     /**
      * Amqp request dispatcher
      */
-    @RabbitListener(queues = AmqpId.queue.stream.rpc.find)
+    @RabbitListener(queues = AmqpId.queue.stream.rpc.find, id = "find", autoStartup = "false")
+    @SneakyThrows
     private AmqpResponse find(AmqpRequest request) {
 
         AmqpResponse result;
-        log.trace("AMQP request: {}", request);
-        try {
+        log.trace(marker, "AMQP request: {}", request);
 
-            String methodName = request.getClass().getSimpleName();
-            if(handlers.containsKey(methodName)) {
-                result = handlers.get(methodName).apply(request);
-            }
-            else throw new IllegalArgumentException("Method " + methodName + " not found");
+        String methodName = request.getClass().getSimpleName();
+        if(handlers.containsKey(methodName)) {
+            result = handlers.get(methodName).apply(request);
         }
-        catch(Exception rethrow) {
-            result = new AmqpErrorResponse(rethrow.getMessage());
-            log.error("Amqp find error: ", rethrow);
+        else {
+            throw new IllegalArgumentException("Method " + methodName + " not found");
         }
+        log.trace(marker, "AMQP response: {}", result);
         return result;
     }
 
@@ -111,7 +112,7 @@ public class StreamRpcServer {
                         // Get method name from method argument class type
                         String controllerMethodName = getArgClass(method).getSimpleName();
 
-                       //String controllerMethodName = jrpcController.value() + "." + jrpcMethod.value();
+                        //String controllerMethodName = jrpcController.value() + "." + jrpcMethod.value();
 
                         // check that name is unique
                         if(handlers.containsKey(controllerMethodName)) {
@@ -142,7 +143,7 @@ public class StreamRpcServer {
 
 
 }
-    
+
 
 
 

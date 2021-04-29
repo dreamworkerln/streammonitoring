@@ -89,7 +89,8 @@ public class Telebot {
 
         DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols(Locale.US);
         otherSymbols.setDecimalSeparator('.');
-        df = new DecimalFormat("#.###", otherSymbols);
+        //df = new DecimalFormat("#.###", otherSymbols);
+        df = new DecimalFormat("#", otherSymbols);
 
 
 
@@ -234,11 +235,12 @@ public class Telebot {
             List<Pair<StreamDto, Double>> list = new ArrayList<>();
             flapping.forEach((key, value) -> list.add(new Pair<>(keyToStream.get(key), value)));
             list.sort(Comparator.comparing(Pair::getSecond));
+            Collections.reverse(list);
 
             for (Pair<StreamDto, Double> pair : list) {
                 String title = pair.getFirst().getFriendlyTitle();
                 String freq = df.format(pair.getSecond());
-                sb.append(title).append("    (").append(freq).append("Hz)\n");
+                sb.append(title).append("    (").append(freq).append(" s)\n");
             }
         }
         else {

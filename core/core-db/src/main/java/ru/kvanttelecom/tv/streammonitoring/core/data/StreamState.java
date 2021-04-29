@@ -1,15 +1,12 @@
 package ru.kvanttelecom.tv.streammonitoring.core.data;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
-import ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService;
+import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamStateTypes;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -18,91 +15,71 @@ import java.util.concurrent.atomic.AtomicReference;
 @Slf4j
 public class StreamState extends AbstractEntity {
 
-    private static final int STREAM_MAX_LEVEL = 10;
-    private static final int STREAM_THRESHOLD_LEVEL = (int)(STREAM_MAX_LEVEL * 0.7);
+    // private static final int STREAM_MAX_LEVEL = 10;
+    // private static final int STREAM_THRESHOLD_LEVEL = (int)(STREAM_MAX_LEVEL * 0.7);
 
     // минимальный порог фильтрации частоты изменения alive
     // при значениях частоты, ниже указанного стрим не будет отображен как флапающий
-    public static final double STREAM_FLAPPING_MIN_RATE = 1e-3; // 1 раз в 1000 сек
+    // public static final double STREAM_FLAPPING_MIN_RATE = 1e-3; // Minimum detectable rate to stream flapping  (1 раз в 1000 сек)
 
-    // Порог минимального числа изменений alive
-    // для начала вычисления частоты изменения alive стрима
-    private static final int UPDATE_ALIVE_CHANGE_COUNT_MIN = 10;
+    // при значениях частоты, выше указанного стрим будет рассматриваться как серьезно флапающий
+    // И такой стрим не будет валиться в streamEventSender - события о стримах (группа оповещений в телеграм)
+    // public static final double STREAM_FLAPPING_MIN_VALUABLE_RATE = 1e-2; // Уровень значимого флапа
 
+//    // Порог минимального числа изменений alive
+//    // для начала вычисления частоты изменения alive стрима
+//    private static final int UPDATE_ALIVE_CHANGE_COUNT_MIN = 10;
 
     @Getter
     private final StreamKey streamKey;
 
-    @Getter
-    private boolean alive = false;
 
-    //@Getter
-    //private boolean flapping = false;
-
-    @Getter
-    private double flapRateMoving = 0;
-
-    private final DescriptiveStatistics rateStatistic = new DescriptiveStatistics();
-
-    // ---------------------------------------------------------------------------------------------
-
-    // уровень для гистерезиса
-    private int level = 0;
-
-    // Количество изменений alive с момента предыдущего расчета частоты
-    // how many times StreamUpdate.alive was changed since last calculation
-    private final AtomicInteger aliveChangeCount = new AtomicInteger();
-
-    // время последнего вычисления частоты
-    private final AtomicReference<Instant> lastCalculateRateTime = new AtomicReference<>(Instant.now());
+    private final ConcurrentMap<StreamStateTypes, SubState> substates = new ConcurrentHashMap<>();
 
 
     public StreamState(StreamKey streamKey, boolean enabled, boolean alive) {
         this.streamKey = streamKey;
-        this.enabled = enabled;
-        this.alive = alive;
-        rateStatistic.setWindowSize(10);
+
+        substates.put(StreamStateTypes.ENABLENESS, new SubState(enabled));
+        substates.put(StreamStateTypes.ALIVENESS, new SubState(alive));
     }
 
-    public void update(boolean newAlive) {
-        alive = newAlive;
-
-        // calculate flapping frequency
-        if(alive && !StreamStateMultiService.firstRun) {
-            aliveChangeCount.incrementAndGet();
-        }
+    public boolean isEnabled() {
+        return substates.get(StreamStateTypes.ENABLENESS).isValue();
     }
 
 
-
-    public void calculateRate() {
-
-        if(StreamStateMultiService.firstRun) {
-            return;
-        }
-
-        Instant now = Instant.now();
-        long duration = Duration.between(lastCalculateRateTime.getAndSet(now), now).toSeconds();
-        if(duration > 0) {
-            int count = aliveChangeCount.getAndSet(0);
-            double flapRate = (double)count / duration;
-            rateStatistic.addValue(flapRate);
-            flapRateMoving = rateStatistic.getMean();
-
-            if(Math.abs(flapRateMoving) > STREAM_FLAPPING_MIN_RATE){
-                log.trace("Stream {}, cnt: {},  freq: {}, moving: {}", streamKey, count, flapRate, flapRateMoving);
-            }
-        }
+    public boolean isAlive() {
+        return substates.get(StreamStateTypes.ALIVENESS).isValue();
     }
 
+    /**
+     * Выдает минимальный период по всем типам событий
+     */
+    public double getPeriod() {
+        AtomicReference<Double> result = new AtomicReference<>(0.);
+        substates.values().stream().mapToDouble(SubState::getPeriod).min().ifPresent(result::set);
+        return result.get();
+    }
+
+
+    public boolean update(StreamStateTypes subtype, boolean newValue) {
+
+        boolean result;
+
+        SubState substate = substates.get(subtype);
+        log.trace("{}", streamKey);
+        result = substate.update(newValue);
+        return result;
+    }
 
 
     @Override
     public String toString() {
         return "StreamState{" +
             "streamKey=" + streamKey +
-            ", enabled=" + enabled +
-            ", alive=" + alive +
+            ", enabled=" + substates.get(StreamStateTypes.ENABLENESS).isValue() +
+            ", alive=" + substates.get(StreamStateTypes.ALIVENESS).isValue() +
             '}';
     }
 }

@@ -95,12 +95,14 @@ public class StreamRpcClient {
 
         log.trace("RPC REQUEST <FIND STREAMS BY KEY>");
         AmqpRequest request = new AmqpFindAllStreamByKey(keys);
-        ParameterizedTypeReference<AmqpStreamListResponse> responseTypeRef = new ParameterizedTypeReference<>() {};
+        ParameterizedTypeReference<AmqpStreamListResponse> responseTypeRef = new ParameterizedTypeReference<>() {
+        };
         var response = template.convertSendAndReceiveAsType(exchanger, routing, request, responseTypeRef);
-        if(response == null) {
+        if (response == null) {
             throw new RuntimeException("RPC <FIND STREAMS BY KEY>: NO RESPONSE");
         }
         result = response.getList();
+
         log.trace("RPC RESPONSE: {}", result);
         return result;
     }
@@ -150,7 +152,7 @@ public class StreamRpcClient {
         }
         result = response.getMap();
 
-       log.trace("RPC RESPONSE: {}", result);
+        log.trace("RPC RESPONSE: {}", result);
         return result;
     }
 

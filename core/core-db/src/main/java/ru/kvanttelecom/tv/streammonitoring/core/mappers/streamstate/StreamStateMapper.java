@@ -25,7 +25,7 @@ public abstract class StreamStateMapper extends AbstractMapper<StreamState, Stre
 
 
 
-    @Mapping(target = "flapRateMoving", ignore = true)
+    //@Mapping(target = "flapRateMoving", ignore = true)
     public abstract StreamState toEntity(StreamDto streamDto);
 
 
