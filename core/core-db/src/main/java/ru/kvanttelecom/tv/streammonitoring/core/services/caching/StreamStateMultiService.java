@@ -175,16 +175,17 @@ public class StreamStateMultiService extends Multicache<StreamState> {
      */
     public List<StreamState> getOffline() {
         // filter out disabled streams
-        return offlineIndex.findAll();
+        //return offlineIndex.findAll();
 
-//        return offlineIndex.findAll().stream()
-//            //.filter(st -> st.getPeriod() > STREAM_FLAPPING_MIN_PERIOD)
-//            .collect(Collectors.toList());
+        return offlineIndex.findAll().stream()
+            .filter(st -> st.getPeriod() > STREAM_FLAPPING_MAX_PERIOD_SECONDS)
+            .collect(Collectors.toList());
 
     }
 
     /**
-     * Get currently flapping streams
+     * Get currently flapping streams 
+     * (filtered out streams with period > STREAM_FLAPPING_MAX_PERIOD_SECONDS)
      */
     public Map<StreamKey, Double> getPeriods() {
         return streamKeyIndex.findAll().stream()
