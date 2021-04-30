@@ -8,16 +8,15 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static ru.kvanttelecom.tv.streammonitoring.core.services.caching.StreamStateMultiService.STREAM_FLAPPING_MIN_PERIOD;
-
-
 @Slf4j
 public class SubState {
 
-    private static int WINDOW_SIZE = 20;
-    // Стримы, флапающее с большим периодом не отображаются
-    //public static double STREAM_FLAPPING_MIN_PERIOD = 1e100;
+    // Стримы, флапающее с большим периодом не отображаются,
+    // но сбор статистики по таким стримам будет продолжен
+    public static double STREAM_FLAPPING_MAX_PERIOD_SECONDS = 1000;
 
+    // размер окна скользящего среднего
+    private static int WINDOW_SIZE = 20;
 
     @Getter
     private boolean value;
@@ -43,8 +42,8 @@ public class SubState {
     // время последнего вычисления периода
     // private final AtomicReference<Instant> lastPeriodCalculationTime = new AtomicReference<>(Instant.now());
 
-    private final AtomicReference<Instant> lastUpTime = new AtomicReference<>(Instant.EPOCH);
-    private final AtomicReference<Instant> lastDownTime = new AtomicReference<>(Instant.EPOCH);
+    private final AtomicReference<Instant> lastUpTime = new AtomicReference(Instant.EPOCH);
+    private final AtomicReference<Instant> lastDownTime = new AtomicReference(Instant.EPOCH);
 
     public SubState(boolean initial) {
         this.value = initial;
@@ -53,8 +52,23 @@ public class SubState {
     }
 
     public double getPeriod() {
+
         double period = (upStatistic.getMean() +  downStatistic.getMean()) / 2;
-        return Double.isNaN(period) ? STREAM_FLAPPING_MIN_PERIOD + 1 : period;
+        period = Double.isNaN(period) ? STREAM_FLAPPING_MAX_PERIOD_SECONDS + 1 : period;
+
+
+        // долго не поступало событий со стрима, продолжаем измерять период
+        // (период измерится, когда появятся новые данные), но пользователю говорим
+        // что период вышел за границы измерений
+        Instant max = lastUpTime.get();
+        if(lastDownTime.get().getEpochSecond() > max.getEpochSecond()) {
+            max = lastDownTime.get();
+        }
+
+        if (Duration.between(max, Instant.now()).toSeconds() > STREAM_FLAPPING_MAX_PERIOD_SECONDS) {
+            period = STREAM_FLAPPING_MAX_PERIOD_SECONDS + 1;
+        }
+        return period;
     }
 
     /**
@@ -107,6 +121,7 @@ public class SubState {
         if (duration > 0) {
             double period = statistics.getMean();
             double std = statistics.getStandardDeviation();
+            log.trace("period: {}", period);
             if (!Double.isNaN(period)) {
                 log.trace("period: {}, std: {}", period, std);
                 // правило 3 сигм
@@ -115,40 +130,8 @@ public class SubState {
             }
             statistics.addValue(duration);
         }        
-        log.info("result: {}", result);
+        log.trace("result: {}", result);
         log.trace("========================");
         return result;
     }
 }
-
-
-
-// ASAP EDC: move this to upper
-//        if(StreamStateMultiService.firstRun) {
-//            return;
-//        }
-
-
-
-
-
-//
-//    public void calculateRate() {
-//
-//        // ASAP EDC: move this to upper
-//        if(StreamStateMultiService.firstRun) {
-//            return;
-//        }
-//
-//
-//
-//        Instant now = Instant.now();
-//        long duration = Duration.between(lastRateCalculationTime.getAndSet(now), now).toSeconds();
-//        if(duration > 0) {
-//            int count = changeCount.getAndSet(0);
-//            double rate = (double)count / duration;
-//            rateStatistic.addValue(rate);
-//            this.rate = rateStatistic.getMean();
-//        }
-//    }
-

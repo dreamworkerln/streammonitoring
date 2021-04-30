@@ -20,6 +20,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static ru.kvanttelecom.tv.streammonitoring.core.data.SubState.STREAM_FLAPPING_MAX_PERIOD_SECONDS;
+
 
 // Predicate.not()
 
@@ -27,10 +29,6 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class StreamStateMultiService extends Multicache<StreamState> {
-
-
-    // Стримы, флапающее с большим периодом не отображаются
-    public static double STREAM_FLAPPING_MIN_PERIOD = 1000;
 
 
     // Marker that system have not been initialized with new data
@@ -190,7 +188,7 @@ public class StreamStateMultiService extends Multicache<StreamState> {
      */
     public Map<StreamKey, Double> getPeriods() {
         return streamKeyIndex.findAll().stream()
-            .filter(st -> st.getPeriod() <= STREAM_FLAPPING_MIN_PERIOD)
+            .filter(st -> st.getPeriod() <= STREAM_FLAPPING_MAX_PERIOD_SECONDS)
             .collect(Collectors.toMap(StreamState::getStreamKey, StreamState::getPeriod));
 
     }
