@@ -14,7 +14,7 @@ public class MediaServerEventsReceiver {
 
     @PostMapping
     public void  processRequest(@RequestBody String json) {
-        log.trace("Received: {}", json);
+        log.debug("Received: {}", json);
         eventSender.send(json);
     }
 }

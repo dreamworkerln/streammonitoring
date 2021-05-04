@@ -334,7 +334,7 @@ public class StreamManager {
 //        // ---------------------------------------------------------------
 
 
-        log.trace("MONITOR: {}", events);
+        log.debug("MONITOR: {}", events);
         streamEventSender.send(events);
     }
 
@@ -386,6 +386,15 @@ public class StreamManager {
         }
     }
 
+//    public void printFlapAll() {
+//
+//        log.debug("===================== PERIODS ALL =========================");
+//        Map<StreamKey, Double> map = streamStateMultiService.getPeriodsAll();
+//        for (Map.Entry<StreamKey, Double> entry : map.entrySet()) {
+//            log.debug("Stream: {} : {}", entry.getKey(), entry.getValue());
+//        }
+//        log.debug("============================================================");
+//    }
 
 
 // =================================================================================================================

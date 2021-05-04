@@ -37,11 +37,11 @@ public class EventSender {
 
                 try {
                     String url = props.getProtocol() + receiver;
-                    log.trace("POST TO: {}", url);
+                    log.debug("POST TO: {}", url);
                     restClient.post(url, json);
                 }
                 catch (Exception skip) {
-                    log.trace("Post error: ", skip); // trace - cause log pollution if error
+                    log.debug("Post error: ", skip); // trace - cause log pollution if error
                 }
 
                 return new JobResult<>();

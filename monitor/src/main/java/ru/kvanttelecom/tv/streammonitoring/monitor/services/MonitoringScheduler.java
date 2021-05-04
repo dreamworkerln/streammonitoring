@@ -34,8 +34,8 @@ public class MonitoringScheduler {
         initialDelayString = "#{1 * 1000}")
     private void updateStreams() {
 
-        log.trace("Monitor: update streams");
-        //log.trace("MONITOR - UPDATE STREAMS ==============================================");
+        log.debug("Monitor: update streams");
+        //log.debug("MONITOR - UPDATE STREAMS ==============================================");
         manager.scanAll();
 
         // post-startup

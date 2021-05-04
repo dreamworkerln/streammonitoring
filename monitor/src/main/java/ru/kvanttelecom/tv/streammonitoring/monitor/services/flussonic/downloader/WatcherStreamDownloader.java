@@ -67,7 +67,7 @@ public class WatcherStreamDownloader implements StreamDownloader {
             "/vsaas/api/v2/cameras?limit=" + STREAM_LIMIT;
 
         try {
-            log.trace("GET: {}", url);
+            log.debug("GET: {}", url);
             resp = restClient.get(url);
             body = resp.hasBody() ? resp.getBody() : null;
             throwIfBlank(body, "Response <Flussonic Watcher>: json<cameras> == empty");
@@ -106,7 +106,7 @@ public class WatcherStreamDownloader implements StreamDownloader {
             "/vsaas/api/v2/cameras/" + streamKey.getName();
 
         try {
-            log.trace("GET: {}", url);
+            log.debug("GET: {}", url);
             resp = restClient.get(url);
 
             body = resp.hasBody() ? resp.getBody() : null;
@@ -164,7 +164,7 @@ public class WatcherStreamDownloader implements StreamDownloader {
         try {
 
             String loginUrl = props.getWatcher().getAddress();
-            log.trace("POST: {}", loginUrl);
+            log.debug("POST: {}", loginUrl);
             resp = restClient.post(loginUrl, login.toString());
 
             body = resp.hasBody() ? resp.getBody() : null;

@@ -63,12 +63,17 @@ public class StreamState extends AbstractEntity {
     }
 
 
+    /**
+     *
+     * @param subtype
+     * @param newValue
+     * @return does state have been changed
+     */
     public boolean update(StreamStateTypes subtype, boolean newValue) {
 
         boolean result;
-
         SubState substate = substates.get(subtype);
-        log.trace("{}", streamKey);
+        log.debug("{}", streamKey);
         result = substate.update(newValue);
         return result;
     }
@@ -183,7 +188,7 @@ public class StreamState extends AbstractEntity {
 //        if(lastUpdateAlive != alive) {
 //
 //
-//            log.trace("Stream {} flap count: {}", event.getStreamName(), updateAliveChangeCount.get());
+//            log.debug("Stream {} flap count: {}", event.getStreamName(), updateAliveChangeCount.get());
 //
 //            // увеличиваем aliveChangeCount
 //            // Производим расчет частоты изменения updateAlive,

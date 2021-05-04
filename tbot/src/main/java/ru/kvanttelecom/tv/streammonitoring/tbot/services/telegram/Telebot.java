@@ -317,12 +317,12 @@ public class Telebot {
 
                 exception = jobResult.getException();
                 result = jobResult.getResult();
-                //log.trace("Telebot send result: {}", result);;
+                //log.debug("Telebot send result: {}", result);;
 
                 // need to wait on error
                 if(exception != null) {
 
-                    log.trace("Telebot send exception:", exception);
+                    log.debug("Telebot send exception:", exception);
 
                     // дополнительно ждем
                     Thread.sleep(telegramSendTimeout.get().toMillis());

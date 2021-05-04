@@ -194,6 +194,11 @@ public class StreamStateMultiService extends Multicache<StreamState> {
 
     }
 
+    public Map<StreamKey, Double> getPeriodsAll() {
+        return streamKeyIndex.findAll().stream()
+            .collect(Collectors.toMap(StreamState::getStreamKey, StreamState::getPeriod));
+    }
+
 
 
     /**

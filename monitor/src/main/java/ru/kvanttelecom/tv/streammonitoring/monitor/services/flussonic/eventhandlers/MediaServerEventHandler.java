@@ -69,7 +69,7 @@ public class MediaServerEventHandler {
 
     // Stream has been started on mediaserver
     private void started(MediaServerEvent event) {
-        log.trace("Started: '{}'", event.getStreamKey());
+        log.debug("Started: '{}'", event.getStreamKey());
 
         streamManager.start(event.getStreamKey());
         //return new HashSet<>(Collections.singletonList(StreamEventType.ADDED));
@@ -77,7 +77,7 @@ public class MediaServerEventHandler {
 
     // Stream has been stopped on mediaserver
     private void stopped(MediaServerEvent event) {
-        log.trace("Stopped: '{}'", event.getStreamKey());
+        log.debug("Stopped: '{}'", event.getStreamKey());
         streamManager.stop(event.getStreamKey());
         //return new HashSet<>(Collections.singletonList(StreamEventType.DELETED));
     }
@@ -86,7 +86,7 @@ public class MediaServerEventHandler {
     private void stateChanged(MediaServerEvent event) {
         boolean alive = getMediaServerEventAlive(event);
         String aliveStr = alive ? "online" : "offline";
-        //log.trace("State changed '{}': {}", event.getStreamKey(), aliveStr);
+        //log.debug("State changed '{}': {}", event.getStreamKey(), aliveStr);
         StreamKey key = event.getStreamKey();
         streamManager.changeAlive(key, alive);
     }

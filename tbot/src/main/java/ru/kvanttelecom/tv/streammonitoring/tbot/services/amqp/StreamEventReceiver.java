@@ -40,7 +40,7 @@ public class StreamEventReceiver {
     private void receive(List<StreamEventDto> update) {
 
         try {
-            log.trace("STREAM EVENT: {}", update);
+            log.debug("STREAM EVENT: {}", update);
 
             // get stream keys from update
             List<StreamKey> keys = update.stream().map(StreamEventDto::getKey).collect(Collectors.toList());

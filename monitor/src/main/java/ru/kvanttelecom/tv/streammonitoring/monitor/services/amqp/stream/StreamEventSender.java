@@ -24,9 +24,9 @@ public class StreamEventSender {
         String exchanger = AmqpId.exchanger.stream.events.update;
         String routing = AmqpId.binding.stream.events.update;
 
-        //log.trace("SENDING STREAM EVENTS: {}", events);
+        //log.debug("SENDING STREAM EVENTS: {}", events);
         template.convertAndSend(exchanger, routing, events);
-        //log.trace("STREAM EVENTS SEND");
+        //log.debug("STREAM EVENTS SEND");
     }
 
 }

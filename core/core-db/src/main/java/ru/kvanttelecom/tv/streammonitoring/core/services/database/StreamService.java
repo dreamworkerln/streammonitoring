@@ -211,7 +211,7 @@ public class StreamService extends RepoAccessService<Stream> {
 //                    // INIT STREAM
 //                    else {
 //                        typeList.add(StreamEventType.INIT);
-//                        //log.trace("{} STREAM: {} {}",typeList, stream.getName(), stream.getTitle());
+//                        //log.debug("{} STREAM: {} {}",typeList, stream.getName(), stream.getTitle());
 //                    }
 //
 //

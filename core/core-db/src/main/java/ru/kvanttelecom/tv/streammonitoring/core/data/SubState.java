@@ -13,7 +13,7 @@ public class SubState {
 
     // Стримы, флапающее с большим периодом не отображаются,
     // но сбор статистики по таким стримам будет продолжен
-    public static double STREAM_FLAPPING_MAX_PERIOD_SECONDS = 1000;
+    public static double STREAM_FLAPPING_MAX_PERIOD_SECONDS = 60;
 
     // размер окна скользящего среднего
     private static int WINDOW_SIZE = 20;
@@ -74,13 +74,13 @@ public class SubState {
     /**
      * Update substate frequency
      * @param newValue
-     * @return notification required
+     * @return substate have been changed
      */
     public boolean update(boolean newValue) {
 
         boolean result = false;
 
-        log.trace("old: {}, new: {}", value, newValue);
+        log.debug("old: {}, new: {}", value, newValue);
         value = newValue;
 
         AtomicReference<Instant> lastTime;
@@ -88,12 +88,12 @@ public class SubState {
         if(value) {
             lastTime = lastUpTime;
             statistics = upStatistic;
-            log.trace("up");
+            log.debug("up");
         }
         else {
             lastTime = lastDownTime;
             statistics = downStatistic;
-            log.trace("down");
+            log.debug("down");
         }
 
         return process(lastTime, statistics);
@@ -104,34 +104,34 @@ public class SubState {
      *
      * @param lastTime
      * @param statistics
-     * @return notification required
+     * @return does state changed
      */
     private boolean process(AtomicReference<Instant> lastTime, DescriptiveStatistics statistics) {
         boolean result = true;
 
         Instant now = Instant.now();
 
-        log.trace("lastTime: {}", lastTime.get());
+        log.debug("lastTime: {}", lastTime.get());
         double duration = lastTime.get().equals(Instant.EPOCH) ? 0 :
             Duration.between(lastTime.get(), now).toMillis() / 1000.0;
 
         lastTime.set(now);
-        log.trace("duration: {}", duration);
+        log.debug("duration: {}", duration);
 
         if (duration > 0) {
             double period = statistics.getMean();
             double std = statistics.getStandardDeviation();
-            log.trace("period: {}", period);
+            log.debug("period: {}", period);
             if (!Double.isNaN(period)) {
-                log.trace("period: {}, std: {}", period, std);
+                log.debug("period: {}, std: {}", period, std);
                 // правило 3 сигм
-                log.trace("Math.abs(period - duration) > 3 * std: {} > {}", Math.abs(period - duration), 3 * std);
+                log.debug("Math.abs(period - duration) > 3 * std: {} > {}", Math.abs(period - duration), 3 * std);
                 result = Math.abs(period - duration) > 3 * std;
             }
             statistics.addValue(duration);
         }        
-        log.trace("result: {}", result);
-        log.trace("========================");
+        log.debug("result: {}", result);
+        log.debug("========================");
         return result;
     }
 }

@@ -134,4 +134,17 @@
         <appender-ref ref="LOG_ERROR"/>
     </root>
 
+
+    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+        <Name>MEDIASERVER_EVENT_FILTER</Name>
+        <Marker>MEDIASERVER_EVENT</Marker>
+        <OnMatch>DENY</OnMatch>
+    </turboFilter>
+
+    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+        <Name>AMQP_MARKER_FILTER</Name>
+        <Marker>AMQP_MARKER</Marker>
+        <OnMatch>DENY</OnMatch>
+    </turboFilter>
+
 </configuration>

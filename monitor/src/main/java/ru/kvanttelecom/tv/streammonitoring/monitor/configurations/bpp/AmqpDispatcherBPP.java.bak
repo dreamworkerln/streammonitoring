@@ -20,7 +20,7 @@ public class AmqpDispatcherBPP implements BeanPostProcessor, Ordered {
 
     @PostConstruct
     private void init() {
-        log.trace(MethodHandles.lookup().lookupClass().getSimpleName() + " postConstruct");
+        log.debug(MethodHandles.lookup().lookupClass().getSimpleName() + " postConstruct");
     }
 
     @Override

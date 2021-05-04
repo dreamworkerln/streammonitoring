@@ -18,7 +18,7 @@ public class StreamPersistListener {
 //    public void methodExecuteBeforeSave(Stream stream) {
 //
 //        // update StreamKey
-//        log.trace("Stream post persist/update: {}", stream);
+//        log.debug("Stream post persist/update: {}", stream);
 //
 //        Long serverId = stream.getServer().getId();
 //        Long streamId = stream.getServer().getId();

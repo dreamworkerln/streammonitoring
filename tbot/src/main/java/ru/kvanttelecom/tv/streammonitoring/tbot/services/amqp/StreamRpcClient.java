@@ -27,20 +27,20 @@ public class StreamRpcClient {
 
 //    @PostConstruct
 //    private void postConstruct() {
-//        //log.trace(bindingStreamRpcFindAll.toString());
+//        //log.debug(bindingStreamRpcFindAll.toString());
 //    }
 
 //
 //    public List<Stream> findAll() {
 //
 //        List<Stream> result;
-//        log.trace("RPC REQUEST <FIND STREAMS ALL>");
+//        log.debug("RPC REQUEST <FIND STREAMS ALL>");
 //
 //        ArAbstract reqFindAll = new ArStreamFindAll();
 //
 //        ParameterizedTypeReference<List<Stream>> resTypeRef = new ParameterizedTypeReference<>() {};
 //        result = template.convertSendAndReceiveAsType(exchanger, routing, reqFindAll, resTypeRef);
-//        log.trace("RPC RESPONSE: {}", result);
+//        log.debug("RPC RESPONSE: {}", result);
 //
 //        if(result == null) {
 //            throw new RuntimeException("RPC <FIND STREAMS ALL>: NO RESPONSE");
@@ -60,7 +60,7 @@ public class StreamRpcClient {
 //
 //        StreamDto result;
 //
-//        log.trace("RPC REQUEST <FIND STREAMS BY KEY>");
+//        log.debug("RPC REQUEST <FIND STREAMS BY KEY>");
 //
 //        String exchanger = AmqpId.exchanger.stream.rpc.find;
 //        String routing = AmqpId.binding.stream.rpc.find;
@@ -79,7 +79,7 @@ public class StreamRpcClient {
 //            result = response.getList().get(0);
 //        }
 //
-//        log.trace("RPC RESPONSE: {}", result);
+//        log.debug("RPC RESPONSE: {}", result);
 //        return result;
 //    }
 
@@ -93,7 +93,7 @@ public class StreamRpcClient {
 
         List<StreamDto> result;
 
-        log.trace("RPC REQUEST <FIND STREAMS BY KEY>");
+        log.debug("RPC REQUEST <FIND STREAMS BY KEY>");
         AmqpRequest request = new AmqpFindAllStreamByKey(keys);
         ParameterizedTypeReference<AmqpStreamListResponse> responseTypeRef = new ParameterizedTypeReference<>() {
         };
@@ -103,7 +103,7 @@ public class StreamRpcClient {
         }
         result = response.getList();
 
-        log.trace("RPC RESPONSE: {}", result);
+        log.debug("RPC RESPONSE: {}", result);
         return result;
     }
 
@@ -118,7 +118,7 @@ public class StreamRpcClient {
 
         List<StreamKey> result;
 
-        log.trace("RPC REQUEST <FIND OFFLINE STREAMKEYS>");
+        log.debug("RPC REQUEST <FIND OFFLINE STREAMKEYS>");
 
         var request = new AmqpFindOfflineStream();
 
@@ -129,7 +129,7 @@ public class StreamRpcClient {
             throw new RuntimeException("RPC <FIND OFFLINE STREAMKEYS>: NO RESPONSE");
         }
         result = response.getList();
-        log.trace("RPC RESPONSE: {}", result);
+        log.debug("RPC RESPONSE: {}", result);
         return result;
     }
 
@@ -141,7 +141,7 @@ public class StreamRpcClient {
 
         Map<StreamKey,Double> result;
 
-        log.trace("RPC REQUEST <FIND FLAPPING STREAMS>");
+        log.debug("RPC REQUEST <FIND FLAPPING STREAMS>");
 
         AmqpRequest request = new AmqpFindFlappingStream();
         ParameterizedTypeReference<AmqpFindFlappingStreamKeyResponse> responseTypeRef = new ParameterizedTypeReference<>() {};
@@ -152,7 +152,7 @@ public class StreamRpcClient {
         }
         result = response.getMap();
 
-        log.trace("RPC RESPONSE: {}", result);
+        log.debug("RPC RESPONSE: {}", result);
         return result;
     }
 

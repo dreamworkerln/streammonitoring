@@ -55,7 +55,7 @@ public class StreamRpcServer {
     private AmqpResponse find(AmqpRequest request) {
 
         AmqpResponse result;
-        log.trace(marker, "AMQP request: {}", request);
+        log.debug(marker, "AMQP request: {}", request);
 
         String methodName = request.getClass().getSimpleName();
         if(handlers.containsKey(methodName)) {
@@ -64,7 +64,7 @@ public class StreamRpcServer {
         else {
             throw new IllegalArgumentException("Method " + methodName + " not found");
         }
-        log.trace(marker, "AMQP response: {}", result);
+        log.debug(marker, "AMQP response: {}", result);
         return result;
     }
 
@@ -149,7 +149,7 @@ public class StreamRpcServer {
 
 //
 //
-//            //log.trace("RPC REQUEST <FIND STREAMS> PARAMS: {}", request);
+//            //log.debug("RPC REQUEST <FIND STREAMS> PARAMS: {}", request);
 //
 //            if (request instanceof AmqpFindOfflineStream) {
 //
@@ -159,7 +159,7 @@ public class StreamRpcServer {
 //                result = new AmqpStreamFindOfflineResponse(streamMapper.toDtoList(offline));
 //
 //
-//                //log.trace("RPC <FIND STREAMS> RESPONSE: {}", result);
+//                //log.debug("RPC <FIND STREAMS> RESPONSE: {}", result);
 //            }
 //            else if(request instanceof AmqpFindStreamByKey) {
 //
@@ -167,13 +167,13 @@ public class StreamRpcServer {
 //                List<Stream> list = List.of(streamMultiService.findByKey(key).get());
 //                result = new AmqpStreamFindOneResponse(streamMapper.toDtoList(list));
 //
-//                //log.trace("RPC <FIND STREAMS> RESPONSE: {}", result);
+//                //log.debug("RPC <FIND STREAMS> RESPONSE: {}", result);
 //            }
 //            else if(request instanceof AmqpFindFlappingStream) {
 //
 //                Map<StreamKey,Long> flapping = streamStateMultiService.getFlapCounts();
 //                result = new AmqpFindFlappingStreamKeyResponse(flapping);
-//                //log.trace("RPC <FIND STREAMS> RESPONSE: {}", result);
+//                //log.debug("RPC <FIND STREAMS> RESPONSE: {}", result);
 //            }
 //        }
 //        catch(Exception rethrow) {
@@ -196,9 +196,9 @@ public class StreamRpcServer {
         List<Stream> result;
 
         try {
-            log.trace("RPC REQUEST <FIND STREAMS ALL>");
+            log.debug("RPC REQUEST <FIND STREAMS ALL>");
             result = streamService.findAll();
-            log.trace("RPC <FIND STREAMS ALL> RESPONSE: {}", result);
+            log.debug("RPC <FIND STREAMS ALL> RESPONSE: {}", result);
         }
         catch(Exception rethrow) {
             log.error("StreamRpcServer.response error:", rethrow);

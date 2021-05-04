@@ -44,17 +44,17 @@ public class MediaServerStreamParser {
     private StreamDto getStream(JSONObject obj, String hostname) {
 
         String name = obj.getString("name");
-        //log.trace("NAME: {}", name);
+        //log.debug("NAME: {}", name);
 
         JSONObject stats = obj.getJSONObject("stats");
-        //log.trace("STATS: {}", stats.toString());
+        //log.debug("STATS: {}", stats.toString());
 
         boolean alive = stats.optBoolean("alive", false);
 
         //int retryCount = stats.optInt("retry_count", 0);
 
         JSONObject options = obj.getJSONObject("options");
-        //log.trace("OPTIONS: {}", options.toString());
+        //log.debug("OPTIONS: {}", options.toString());
 
         String title = options.optString("title", null);
 

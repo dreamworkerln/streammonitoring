@@ -70,7 +70,7 @@ public class MediaserverStreamDownloader implements StreamDownloader {
                     server.getDomainName() +
                     "/flussonic/api/media";
 
-                //log.trace("GET: {}", url);
+                //log.debug("GET: {}", url);
                 ResponseEntity<String> resp = restClient.get(url);
                 String body = resp.hasBody() ? resp.getBody() : null;
                 throwIfBlank(body, "Response <Flussonic Mediaserver>: json<cameras> == empty");
@@ -133,7 +133,7 @@ public class MediaserverStreamDownloader implements StreamDownloader {
 //
 //                jobPool.batchAsync();
 //                try {
-//                    log.trace("GET: {}", url);
+//                    log.debug("GET: {}", url);
 //                    resp = restClient.get(url);
 //                    body = resp.hasBody() ? resp.getBody() : null;
 //                    throwIfBlank(body, "Response <Flussonic Mediaserver>: json<cameras> == empty");
@@ -151,8 +151,8 @@ public class MediaserverStreamDownloader implements StreamDownloader {
 //
 //            }
 //            catch (Exception skip) {
-//                // log.error -> log.trace : avoid log pollution
-//                log.trace("Mediaserver {} import error, SKIPPING", server.getHostname(), skip);
+//                // log.error -> log.debug : avoid log pollution
+//                log.debug("Mediaserver {} import error, SKIPPING", server.getHostname(), skip);
 //            }
 //        }
 
@@ -182,7 +182,7 @@ public class MediaserverStreamDownloader implements StreamDownloader {
 
         // downloading
         try {
-            //log.trace("GET: {}", url);
+            //log.debug("GET: {}", url);
             resp = restClient.get(url);
             body = resp.hasBody() ? resp.getBody() : null;
             throwIfBlank(body, "Response <Flussonic Mediaserver>: json<camera> == empty");
@@ -229,7 +229,7 @@ public class MediaserverStreamDownloader implements StreamDownloader {
 //
 //        // downloading
 //        try {
-//            log.trace("GET: {}", url);
+//            log.debug("GET: {}", url);
 //            resp = restClient.get(url);
 //            body = resp.hasBody() ? resp.getBody() : null;
 //            throwIfBlank(body, "Response <Flussonic Mediaserver>: json<camera> == empty");

@@ -27,7 +27,7 @@ public class StreamSynchronizer {
 //     * Reload all streams from monitor
 //     */
 //    public void syncAll() {
-//        log.trace("StreamSynchronizer: Reloading all streams");
+//        log.debug("StreamSynchronizer: Reloading all streams");
 //
 //        Map<Long, Stream> updates = streamRpcClient.findAll().stream()
 //            .collect(Collectors.toMap(Stream::getId, Function.identity()));
@@ -40,7 +40,7 @@ public class StreamSynchronizer {
 //        streams.putAll(updates);
 //        // ---------------------------------------------------------------
 //
-//        log.trace("Updated: {} streams", updates.size());
+//        log.debug("Updated: {} streams", updates.size());
 //    }
 
 
@@ -49,7 +49,7 @@ public class StreamSynchronizer {
 //     */
 //    public void syncFromEvent(List<StreamEventDto> update) {
 //
-//        log.trace("StreamSynchronizer: syncFromEvent");
+//        log.debug("StreamSynchronizer: syncFromEvent");
 //
 //        // get StreamKey from event update list
 //        //Set<StreamKey> streamKeys = update.stream().map(StreamEventDto::getStreamKey).collect(Collectors.toSet());
