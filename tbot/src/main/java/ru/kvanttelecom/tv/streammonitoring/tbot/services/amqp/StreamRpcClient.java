@@ -13,6 +13,7 @@ import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.responses.Am
 import ru.kvanttelecom.tv.streammonitoring.core.data.StreamKey;
 import ru.kvanttelecom.tv.streammonitoring.core.dto.stream.StreamDto;
 
+import java.time.Duration;
 import java.util.*;
 
 @Service
@@ -132,6 +133,34 @@ public class StreamRpcClient {
         log.debug("RPC RESPONSE: {}", result);
         return result;
     }
+
+
+    /**
+     * Find offline Streams
+     * @return List<StreamKey>
+     */
+    public List<StreamKey> findOfflineWithDuration(Duration duration) {
+
+        List<StreamKey> result;
+
+        log.debug("RPC REQUEST <FIND OFFLINE STREAMKEYS WITH DURATION>");
+
+        var request = new AmqpFindOfflineStreamWithDuration(duration);
+
+        ParameterizedTypeReference<AmqpStreamKeyListResponse> responseTypeRef = new ParameterizedTypeReference<>() {};
+
+        var response = template.convertSendAndReceiveAsType(exchanger, routing, request, responseTypeRef);
+        if(response == null) {
+            throw new RuntimeException("RPC <FIND OFFLINE STREAMKEYS WITH DURATION>: NO RESPONSE");
+        }
+        result = response.getList();
+        log.debug("RPC RESPONSE: {}", result);
+        return result;
+    }
+
+
+
+
 
     /**
      * Find flapping streams ratio

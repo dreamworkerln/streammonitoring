@@ -104,9 +104,9 @@
     <logger name="org.hibernate" level="WARN"/>
     <logger name="org.hibernate.validator" level="WARN"/>
     <logger name="org.hibernate.ejb.HibernatePersistence" level="OFF"/>
-    <logger name="org.hibernate.SQL" level="TRACE"/>                      <!-- SHOW SQL; TRACE to enable -->
-    <logger name="org.hibernate.type.descriptor.sql" level="TRACE"/>      <!-- SHOW PARAMS VALUES -->
-    <logger name="org.hibernate.tool.hbm2ddl" level="TRACE"/>             <!-- DDL SQL SCHEMA MIGRATION -->
+    <logger name="org.hibernate.SQL" level="OFF"/>                      <!-- SHOW SQL; TRACE to enable -->
+    <logger name="org.hibernate.type.descriptor.sql" level="OFF"/>      <!-- SHOW PARAMS VALUES; TRACE to enable -->
+    <logger name="org.hibernate.tool.hbm2ddl" level="OFF"/>             <!-- DDL SQL SCHEMA MIGRATION; TRACE to enable -->
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.springframework.web" level="WARN"/>
     <logger name="org.springframework.security" level="WARN"/>
@@ -135,11 +135,11 @@
     </root>
 
 
-    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
-        <Name>MEDIASERVER_EVENT_FILTER</Name>
-        <Marker>MEDIASERVER_EVENT</Marker>
-        <OnMatch>DENY</OnMatch>
-    </turboFilter>
+<!--    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">-->
+<!--        <Name>MEDIASERVER_EVENT_FILTER</Name>-->
+<!--        <Marker>MEDIASERVER_EVENT</Marker>-->
+<!--        <OnMatch>DENY</OnMatch>-->
+<!--    </turboFilter>-->
 
     <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
         <Name>AMQP_MARKER_FILTER</Name>

@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import ru.kvanttelecom.tv.streammonitoring.core.entities._base.AbstractEntity;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamStateTypes;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -53,6 +55,17 @@ public class StreamState extends AbstractEntity {
         return substates.get(StreamStateTypes.ALIVENESS).isValue();
     }
 
+
+    /**
+     * Стрим в оффлайне по времени больше, чем указанное в duration
+     */
+    public boolean isOfflineWithDuration(Duration duration) {
+
+        Instant now = Instant.now();
+        SubState sub = substates.get(StreamStateTypes.ALIVENESS);
+        return !sub.isValue() && Duration.between(sub.getLastDownTime(), now).compareTo(duration) > 0;
+    }
+
     /**
      * Выдает минимальный период по всем типам событий
      */
@@ -67,12 +80,13 @@ public class StreamState extends AbstractEntity {
      *
      * @param subtype
      * @param newValue
-     * @return does state have been changed
+     * @return required notification about state changed
      */
     public boolean update(StreamStateTypes subtype, boolean newValue) {
 
         boolean result;
         SubState substate = substates.get(subtype);
+        log.debug("========================");
         log.debug("{}", streamKey);
         result = substate.update(newValue);
         return result;

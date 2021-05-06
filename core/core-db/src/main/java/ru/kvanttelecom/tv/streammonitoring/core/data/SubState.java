@@ -13,7 +13,7 @@ public class SubState {
 
     // Стримы, флапающее с большим периодом не отображаются,
     // но сбор статистики по таким стримам будет продолжен
-    public static double STREAM_FLAPPING_MAX_PERIOD_SECONDS = 60;
+    public static double STREAM_FLAPPING_MAX_PERIOD_SECONDS = 1200;
 
     // размер окна скользящего среднего
     private static int WINDOW_SIZE = 20;
@@ -44,6 +44,11 @@ public class SubState {
 
     private final AtomicReference<Instant> lastUpTime = new AtomicReference(Instant.EPOCH);
     private final AtomicReference<Instant> lastDownTime = new AtomicReference(Instant.EPOCH);
+
+    public Instant getLastDownTime() {
+        return lastDownTime.get();
+    }
+
 
     public SubState(boolean initial) {
         this.value = initial;
@@ -104,7 +109,7 @@ public class SubState {
      *
      * @param lastTime
      * @param statistics
-     * @return does state changed
+     * @return required notification about state changed
      */
     private boolean process(AtomicReference<Instant> lastTime, DescriptiveStatistics statistics) {
         boolean result = true;
@@ -132,6 +137,13 @@ public class SubState {
         }        
         log.debug("result: {}", result);
         log.debug("========================");
+
+        // перестройка частоты
+        if(statistics.getStandardDeviation() * 3 > STREAM_FLAPPING_MAX_PERIOD_SECONDS / 2) {
+            log.debug("FREQUENCY STATISTIC RECALIBRATED");
+            statistics.clear();
+            lastTime.set(now);
+        }
         return result;
     }
 }

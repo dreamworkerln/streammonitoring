@@ -14,6 +14,7 @@ import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamEventType;
 import ru.kvanttelecom.tv.streammonitoring.utils.dto.enums.StreamStateTypes;
 
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -40,9 +41,9 @@ public class StreamStateMultiService extends Multicache<StreamState> {
     private final Index<StreamKey, StreamState> streamKeyIndex = new Index<>(StreamState::getStreamKey);
 
     // streams with problems
-    private final Index<StreamKey, StreamState> offlineIndex = new Index<>(StreamState::getStreamKey);
+    //private final Index<StreamKey, StreamState> offlineIndex = new Index<>(StreamState::getStreamKey);
     // streams with problems
-    private final Index<StreamKey, StreamState> flappingIndex = new Index<>(StreamState::getStreamKey);
+    //private final Index<StreamKey, StreamState> flappingIndex = new Index<>(StreamState::getStreamKey);
 
 
     private final ConcurrentMap<StreamKey, Object> statusWaits = new ConcurrentHashMap<>();
@@ -53,13 +54,13 @@ public class StreamStateMultiService extends Multicache<StreamState> {
     @Override
     protected List<Cachelevel<StreamState>> addLevels() {
 
-        offlineIndex.setAutoAddition(false);
-        flappingIndex.setAutoAddition(false);
+        //offlineIndex.setAutoAddition(false);
+        //flappingIndex.setAutoAddition(false);
 
         MapCache<StreamState> mapCache = new MapCache<>();
         mapCache.addIndex(streamKeyIndex);
-        mapCache.addIndex(offlineIndex);
-        mapCache.addIndex(flappingIndex);
+        //mapCache.addIndex(offlineIndex);
+        //mapCache.addIndex(flappingIndex);
         return new ArrayList<>(List.of(mapCache));
     }
 
@@ -125,7 +126,7 @@ public class StreamStateMultiService extends Multicache<StreamState> {
             // stream went down
             if (localAlive && !updateAlive) {
                 res = local.update(StreamStateTypes.ALIVENESS, false);
-                offlineIndex.save(local);
+                //offlineIndex.save(local);
                 if(res) {
                     result.add(StreamEventType.OFFLINE);
                 }
@@ -134,7 +135,7 @@ public class StreamStateMultiService extends Multicache<StreamState> {
             // stream going up
             if (!localAlive && updateAlive) {
                 res = local.update(StreamStateTypes.ALIVENESS, true);
-                offlineIndex.delete(local);
+                //offlineIndex.delete(local);
                 if(res) {
                     result.add(StreamEventType.ONLINE);
                 }
@@ -153,7 +154,7 @@ public class StreamStateMultiService extends Multicache<StreamState> {
             super.save(local);
 
             if(!updateAlive) {
-                offlineIndex.save(local);
+                //offlineIndex.save(local);
             }
 
             // notify all threads waiting for this StreamState
@@ -177,10 +178,27 @@ public class StreamStateMultiService extends Multicache<StreamState> {
         // filter out disabled streams
         //return offlineIndex.findAll();
 
-        return offlineIndex.findAll().stream()
+        return streamKeyIndex.findAll().stream()
+            .filter(StreamState::isEnabled)
+            .filter(Predicate.not(StreamState::isAlive))
             .filter(st -> st.getPeriod() > STREAM_FLAPPING_MAX_PERIOD_SECONDS)
             .collect(Collectors.toList());
 
+    }
+
+    /**
+     * Get offline streams that stay offline duration time
+     */
+    public List<StreamState> getOfflineWithDuration(Duration duration) {
+        // filter out disabled streams
+        //return offlineIndex.findAll();
+
+        return streamKeyIndex.findAll().stream()
+            .filter(StreamState::isEnabled)
+            .filter(Predicate.not(StreamState::isAlive))
+            .filter(st -> st.isOfflineWithDuration(duration))
+            .filter(st -> st.getPeriod() > STREAM_FLAPPING_MAX_PERIOD_SECONDS)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -193,12 +211,6 @@ public class StreamStateMultiService extends Multicache<StreamState> {
             .collect(Collectors.toMap(StreamState::getStreamKey, StreamState::getPeriod));
 
     }
-
-    public Map<StreamKey, Double> getPeriodsAll() {
-        return streamKeyIndex.findAll().stream()
-            .collect(Collectors.toMap(StreamState::getStreamKey, StreamState::getPeriod));
-    }
-
 
 
     /**

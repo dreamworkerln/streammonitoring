@@ -11,6 +11,8 @@ import com.pengrad.telegrambot.response.SendResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.util.Pair;
+import org.apache.commons.validator.routines.DoubleValidator;
+import org.apache.commons.validator.routines.IntegerValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.dreamworkerln.spring.utils.common.threadpool.BlockingJobPool;
@@ -23,6 +25,7 @@ import ru.kvanttelecom.tv.streammonitoring.tbot.services.amqp.StreamRpcClient;
 import javax.annotation.PostConstruct;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
@@ -141,6 +144,8 @@ public class Telebot {
         });
     }
 
+
+
     // -------------------------------------------------------------------------------
 
     private void start(Long chatId, String text) {
@@ -170,23 +175,39 @@ public class Telebot {
 
 
     /**
-     * Show DOWN streams
+     * Show offline streams
      */
+    @SneakyThrows
     private void streams(Long chatId, String text) {
 
+        // remove bot name
+        text = text.replaceAll("@.*? ", "");
 
-        StringBuilder sb = new StringBuilder();
-        List<String> linesDown = new ArrayList<>();
-        List<String> linesFlap = new ArrayList<>();
+        List<StreamKey> keys;
 
-        // get offline streamKeys
-        List<StreamKey> keys = rpcClient.findOffline();
+        if(isBlank(text)) {
+            keys = rpcClient.findOffline();
+        }
+        else {
+            DoubleValidator dv = DoubleValidator.getInstance();
+            double hours = 5;
+            if(dv.isValid(text, Locale.US)) {
+                NumberFormat format = NumberFormat.getInstance(Locale.US);
+                Number number = format.parse(text);
+                hours = number.doubleValue();
+            }
+            Duration duration = Duration.ofMinutes(Math.round(hours * 60));
+            keys = rpcClient.findOfflineWithDuration(duration);
+        }
 
         // get offline streams
         List<StreamDto> streams = rpcClient.findStreamByKeyList(keys);
 
+        List<String> linesDown = new ArrayList<>();
+        List<String> linesFlap = new ArrayList<>();
 
 
+        StringBuilder sb = new StringBuilder();
         for (StreamDto stream  : streams) {
 
             String title = stream.getFriendlyTitle();
@@ -220,6 +241,8 @@ public class Telebot {
 
         SendResponse response = sendMessage(chatId, sb.toString());
     }
+
+
 
 
 

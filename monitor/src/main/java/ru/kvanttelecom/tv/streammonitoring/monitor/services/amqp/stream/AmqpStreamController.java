@@ -6,6 +6,7 @@ import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.annotations.
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.AmqpFindAllStreamByKey;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.AmqpFindFlappingStream;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.AmqpFindOfflineStream;
+import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.requests.AmqpFindOfflineStreamWithDuration;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.responses.AmqpFindFlappingStreamKeyResponse;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.responses.AmqpStreamKeyListResponse;
 import ru.kvanttelecom.tv.streammonitoring.core.configurations.amqp.responses.AmqpStreamListResponse;
@@ -45,6 +46,14 @@ public class AmqpStreamController {
     public AmqpStreamKeyListResponse findOfflineStreams(AmqpFindOfflineStream request) {
 
         List<StreamState> stats = streamStateMultiService.getOffline();
+        List<StreamKey> keys = stats.stream().map(StreamState::getStreamKey).collect(Collectors.toList());
+        return new AmqpStreamKeyListResponse(keys);
+    }
+
+
+    @AmqpMethod
+    public AmqpStreamKeyListResponse findOfflineStreamsWithDuration(AmqpFindOfflineStreamWithDuration request) {
+        List<StreamState> stats = streamStateMultiService.getOfflineWithDuration(request.getDuration());
         List<StreamKey> keys = stats.stream().map(StreamState::getStreamKey).collect(Collectors.toList());
         return new AmqpStreamKeyListResponse(keys);
     }
